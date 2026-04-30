@@ -155,7 +155,10 @@ def parse_tab_meta(xlsx_path: Path, tab_name: str) -> dict:
     """
     wb = CalamineWorkbook.from_path(str(xlsx_path))
     rows = wb.get_sheet_by_name(tab_name).to_python()
-    header_row_idx = _find_header_row(rows)
+    try:
+        header_row_idx = _find_header_row(rows)
+    except ValueError as exc:
+        raise ValueError(f"Tab '{tab_name}' in {xlsx_path.name}: {exc}") from exc
     header_row = rows[header_row_idx]
 
     columns: dict[str, int] = {}
