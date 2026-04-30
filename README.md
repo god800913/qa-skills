@@ -18,7 +18,7 @@ uv run pytest
 
 ## 스킬 목록
 - `qa-prd-clarify` — PRD 모호점 추출 (Phase 1, 출시 ✅)
-- `qa-generate-tc` — TC xlsx 생성 (Phase 2, TBD)
+- `qa-generate-tc` — TC xlsx 생성 (Phase 2, 출시 ✅)
 - `qa-review-tc` — TC xlsx 리뷰 (Phase 3, TBD)
 
 ## Claude Code에서 사용
@@ -32,3 +32,10 @@ uv run pytest
 - [x] `shared/inspect_master.py` 11개 단위 테스트 전부 통과, 커버리지 83%
 - [x] CLI smoke test on 실제 마스터 xlsx (`[ver117] Release QA_Testcase`) — 28개 탭 인식, Lounge 탭 4개 섹션 + last_tc_id 정확히 추출
 - [ ] (선택) 실제 Notion PRD URL로 검수 — 환경에 Notion MCP 연결되어 있는 사용자가 직접 수행
+
+### Phase 2 검증 (2026-04-30)
+- [x] **단위 테스트 30개** 전부 통과 (Phase 1 13개 + tc_row 4 + new_workbook 4 + append_to_master 5 + _find_section 4)
+- [x] **`qa:generate-tc` 신규 시트 모드 smoke** — sample_rows.json 입력으로 14컬럼 헤더 + 섹션 행 + TC 행 (TC_ID 자동 부여) 정상 생성
+- [x] **`qa:generate-tc` append 모드 smoke** — 마스터 복사본에 새 행 append, **원본 md5 불변 확인**, 두 탭 모두 보존, 새 섹션 인덱스(`3-1`) 자동 부여
+- [x] **Fresh subagent SKILL.md workflow simulation** PASS — sample_prd.md → 8개 TC (P1:2/P2:2/P3:2/P4:2), Remote Config ON/OFF 양분기, PRD 모호점 Comment 명시, 한국어 톤 일관, 할루시네이션 없음
+- [x] `shared/` ↔ `skills/qa-generate-tc/scripts·reference/` 자동 동기화 (`scripts/sync_shared.py`)
