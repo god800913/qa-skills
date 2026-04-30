@@ -86,12 +86,20 @@ def _is_section_header(row: list, columns: dict[str, int]) -> bool:
     return False
 
 
+_BLANK_SENTINELS = {"-", "—", "–", "_"}
+
+
 def _section_name(row: list, columns: dict[str, int]) -> str:
-    """Pick the most informative non-blank cell as section name."""
+    """Pick the most informative non-blank cell as section name. Treats sentinel
+    placeholders like '-' as blank."""
+    pri_idx = columns.get("Priority")
     for idx, cell in enumerate(row):
-        if cell and idx != columns.get("Priority"):
-            return str(cell).strip()
-    # Fall back to Priority cell if everything else is blank
+        if not cell or idx == pri_idx:
+            continue
+        s = str(cell).strip()
+        if not s or s in _BLANK_SENTINELS:
+            continue
+        return s
     pri_idx = columns.get("Priority", 0)
     return str(row[pri_idx]).strip() if pri_idx < len(row) else "(unnamed)"
 
