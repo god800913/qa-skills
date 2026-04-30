@@ -133,3 +133,21 @@ class TestCLI:
         assert data["tab"] == "Lounge"
         assert "columns" in data
         assert "sections" in data
+
+
+class TestParseTabMetaSampleRows:
+    def test_returns_sample_rows(self, minimal_master_path: Path):
+        meta = parse_tab_meta(minimal_master_path, "Lounge")
+        assert "sample_rows" in meta
+        assert isinstance(meta["sample_rows"], list)
+        # By default 3 rows
+        assert 1 <= len(meta["sample_rows"]) <= 3
+
+    def test_sample_rows_are_tc_rows_not_section_headers(self, minimal_master_path: Path):
+        meta = parse_tab_meta(minimal_master_path, "Lounge")
+        # Each sample row should have a TC_ID matching the pattern
+        for row in meta["sample_rows"]:
+            tc_id_idx = meta["columns"].get("TC_ID")
+            assert tc_id_idx is not None
+            tc_id = str(row[tc_id_idx]) if tc_id_idx < len(row) else ""
+            assert "-" in tc_id, f"Sample row TC_ID looks wrong: {tc_id}"
