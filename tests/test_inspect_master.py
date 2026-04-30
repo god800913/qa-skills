@@ -60,6 +60,21 @@ class TestParseTabMeta:
         assert meta["template_type"] == "single"
 
 
+class TestParseTabMetaErrors:
+    def test_header_not_found_error_includes_tab_and_file_context(self, tmp_path: Path):
+        from openpyxl import Workbook
+
+        wb = Workbook()
+        wb.remove(wb.active)
+        ws = wb.create_sheet("BrokenTab")
+        ws.append(["foo", "bar"])  # no Priority cell
+        path = tmp_path / "broken.xlsx"
+        wb.save(path)
+
+        with pytest.raises(ValueError, match="BrokenTab"):
+            parse_tab_meta(path, "BrokenTab")
+
+
 class TestParseTabMetaSections:
     def test_lounge_has_sections(self, minimal_master_path: Path):
         meta = parse_tab_meta(minimal_master_path, "Lounge")
