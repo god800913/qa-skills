@@ -1,0 +1,20 @@
+[project]
+name = "qa-skills"
+version = "0.1.0"
+description = "Hyperconnect Azar QA team's Claude Skills (PoC)"
+requires-python = ">=3.11"
+dependencies = [
+    "openpyxl>=3.1.0",
+    "python-calamine>=0.2.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
