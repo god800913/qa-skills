@@ -132,3 +132,37 @@ class TestAppendCollision:
         actual = result.stdout.strip().splitlines()[-1]
         assert actual != str(out)
         assert Path(actual).exists()
+
+
+class TestFindSection:
+    def test_exact_match(self):
+        from shared.append_to_master import _find_section
+        sections = [
+            {"name": "Async First Entry", "last_tc_id": "1-7"},
+            {"name": "Lounge Navigation", "last_tc_id": "2-30"},
+        ]
+        result = _find_section("Async First Entry", sections)
+        assert result is not None
+        assert result["name"] == "Async First Entry"
+
+    def test_user_name_is_more_specific_matches(self):
+        from shared.append_to_master import _find_section
+        sections = [{"name": "Async First Entry", "last_tc_id": "1-7"}]
+        # User typed a more specific variant — should match the parent
+        result = _find_section("Async First Entry — 신규 추천", sections)
+        assert result is not None
+        assert result["name"] == "Async First Entry"
+
+    def test_user_name_is_prefix_does_not_match(self):
+        """Regression: 'Lounge' should NOT match 'Lounge Navigation'."""
+        from shared.append_to_master import _find_section
+        sections = [
+            {"name": "Lounge Navigation", "last_tc_id": "2-30"},
+        ]
+        result = _find_section("Lounge", sections)
+        assert result is None  # user's name is less specific — treat as new section
+
+    def test_no_match_returns_none(self):
+        from shared.append_to_master import _find_section
+        sections = [{"name": "Async First Entry", "last_tc_id": "1-7"}]
+        assert _find_section("완전히 다른 섹션", sections) is None
