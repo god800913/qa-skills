@@ -58,3 +58,23 @@ class TestParseTabMeta:
     def test_returns_template_type_single(self, minimal_master_path: Path):
         meta = parse_tab_meta(minimal_master_path, "Lounge")
         assert meta["template_type"] == "single"
+
+
+class TestParseTabMetaSections:
+    def test_lounge_has_sections(self, minimal_master_path: Path):
+        meta = parse_tab_meta(minimal_master_path, "Lounge")
+        # Lounge fixture has at least one section header in the first 30 rows
+        assert "sections" in meta
+        assert isinstance(meta["sections"], list)
+        # Each section has name, header_row, last_tc_id (or None)
+        for sec in meta["sections"]:
+            assert "name" in sec
+            assert "header_row" in sec
+            assert "last_tc_id" in sec  # may be None if no TCs in section yet
+
+    def test_last_tc_id_format(self, minimal_master_path: Path):
+        meta = parse_tab_meta(minimal_master_path, "Lounge")
+        ids_found = [s["last_tc_id"] for s in meta["sections"] if s["last_tc_id"]]
+        # Pattern <section>-<number>, e.g. "1-12"
+        for tc_id in ids_found:
+            assert "-" in tc_id, f"Unexpected TC_ID shape: {tc_id}"
