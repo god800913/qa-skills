@@ -93,3 +93,12 @@ class TestParseTabMetaSections:
         # Pattern <section>-<number>, e.g. "1-12"
         for tc_id in ids_found:
             assert "-" in tc_id, f"Unexpected TC_ID shape: {tc_id}"
+
+    def test_login_section_name_skips_dash_sentinel(self, minimal_master_path: Path):
+        meta = parse_tab_meta(minimal_master_path, "login")
+        # The login tab has '-' as Priority-1 cell in the section header row;
+        # the real section label is in a later cell. Names should not be just '-'.
+        names = [s["name"] for s in meta["sections"]]
+        for n in names:
+            assert n != "-", f"Section name '-' is the dash sentinel, not a real label"
+            assert n.strip(), "Section name should not be empty"
