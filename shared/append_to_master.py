@@ -23,6 +23,28 @@ from inspect_master import parse_tab_meta  # noqa: E402
 WRAP = Alignment(wrap_text=True, vertical="top")
 
 
+def _find_section(user_section: str, sections: list[dict]) -> dict | None:
+    """Find section matching user-supplied name.
+
+    Match rules (unidirectional, by design):
+    1. Exact match.
+    2. Stored section name appears verbatim in user's name (user typed a more
+       specific variant of an existing section).
+    3. Otherwise None — caller should treat as new section.
+
+    NOTE: This is intentionally NOT bidirectional. We do NOT match when user's
+    name is a substring of stored name, because that causes false positives
+    (e.g. "Lounge" wrongly matching "Lounge Navigation").
+    """
+    for s in sections:
+        if s["name"] == user_section:
+            return s
+    for s in sections:
+        if s["name"] in user_section:
+            return s
+    return None
+
+
 def _resolve_output_path(path: Path) -> Path:
     if not path.exists():
         return path
@@ -53,18 +75,6 @@ def append_to_master(master: Path, tab: str, rows: list[dict], output: Path) -> 
     columns: dict[str, int] = meta["columns"]
     sections: list[dict] = meta["sections"]
 
-    # Map section name → section dict. Exact name match first, then substring.
-    def _find_section(user_section: str) -> dict | None:
-        # Exact name match first
-        for s in sections:
-            if s["name"] == user_section:
-                return s
-        # Substring match (tolerant: "Async First Entry" matches if either contains the other)
-        for s in sections:
-            if user_section in s["name"] or s["name"] in user_section:
-                return s
-        return None
-
     # Make output dir + collision-safe path
     actual_output = _resolve_output_path(output)
     actual_output.parent.mkdir(parents=True, exist_ok=True)
@@ -93,7 +103,7 @@ def append_to_master(master: Path, tab: str, rows: list[dict], output: Path) -> 
         section_buckets.setdefault(s, []).append(r)
 
     for user_section, bucket in section_buckets.items():
-        match = _find_section(user_section)
+        match = _find_section(user_section, sections)
         if match is None:
             # New section — write a section header row first
             new_section_idx = max(
