@@ -118,6 +118,24 @@ def _extract_tc_id(row: list, columns: dict[str, int]) -> str | None:
     return None
 
 
+def _pick_sample_rows(rows: list[list], columns: dict[str, int],
+                      header_row_idx: int, n: int = 3) -> list[list]:
+    """Pick up to n TC rows (skipping section headers and blank rows) from after the header."""
+    samples: list[list] = []
+    for idx in range(header_row_idx + 1, len(rows)):
+        if len(samples) >= n:
+            break
+        row = rows[idx]
+        if not row or all(c is None or c == "" for c in row):
+            continue
+        if _is_section_header(row, columns):
+            continue
+        if _extract_tc_id(row, columns) is None:
+            continue  # only TC rows with valid IDs
+        samples.append(row)
+    return samples
+
+
 def _parse_sections(rows: list[list], columns: dict[str, int], header_row_idx: int) -> list[dict]:
     """Walk rows after the header, identify section headers and TC rows.
 
@@ -181,6 +199,7 @@ def parse_tab_meta(xlsx_path: Path, tab_name: str) -> dict:
         "columns": columns,
         "header_row": header_row_idx,
         "sections": _parse_sections(rows, columns, header_row_idx),
+        "sample_rows": _pick_sample_rows(rows, columns, header_row_idx),
     }
 
 
