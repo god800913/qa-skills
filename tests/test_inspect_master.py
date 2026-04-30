@@ -102,3 +102,34 @@ class TestParseTabMetaSections:
         for n in names:
             assert n != "-", f"Section name '-' is the dash sentinel, not a real label"
             assert n.strip(), "Section name should not be empty"
+
+
+import json
+import subprocess
+import sys
+
+
+class TestCLI:
+    def test_no_tab_lists_all(self, minimal_master_path: Path):
+        result = subprocess.run(
+            [sys.executable, "shared/inspect_master.py", str(minimal_master_path)],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        data = json.loads(result.stdout)
+        assert "tabs" in data
+        names = {t["name"] for t in data["tabs"]}
+        assert names == {"login", "Lounge"}
+
+    def test_with_tab_returns_meta(self, minimal_master_path: Path):
+        result = subprocess.run(
+            [sys.executable, "shared/inspect_master.py", str(minimal_master_path), "--tab", "Lounge"],
+            capture_output=True,
+            text=True,
+            check=True,
+        )
+        data = json.loads(result.stdout)
+        assert data["tab"] == "Lounge"
+        assert "columns" in data
+        assert "sections" in data
