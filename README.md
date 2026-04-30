@@ -19,7 +19,7 @@ uv run pytest
 ## 스킬 목록
 - `qa-prd-clarify` — PRD 모호점 추출 (Phase 1, 출시 ✅)
 - `qa-generate-tc` — TC xlsx 생성 (Phase 2, 출시 ✅)
-- `qa-review-tc` — TC xlsx 리뷰 (Phase 3, TBD)
+- `qa-review-tc` — TC xlsx 리뷰 (Phase 3, 출시 ✅)
 
 ## Claude Code에서 사용
 
@@ -39,3 +39,8 @@ uv run pytest
 - [x] **`qa:generate-tc` append 모드 smoke** — 마스터 복사본에 새 행 append, **원본 md5 불변 확인**, 두 탭 모두 보존, 새 섹션 인덱스(`3-1`) 자동 부여
 - [x] **Fresh subagent SKILL.md workflow simulation** PASS — sample_prd.md → 8개 TC (P1:2/P2:2/P3:2/P4:2), Remote Config ON/OFF 양분기, PRD 모호점 Comment 명시, 한국어 톤 일관, 할루시네이션 없음
 - [x] `shared/` ↔ `skills/qa-generate-tc/scripts·reference/` 자동 동기화 (`scripts/sync_shared.py`)
+
+### Phase 3 검증 (2026-04-30)
+- [x] **단위 테스트 14개 추가** 전부 통과 (validate_format 6 + find_duplicates 5 + extract_tc_table 3) — 누적 **44개 PASS**
+- [x] **`qa:review-tc` 결정론 스크립트 smoke** — `sample_tc_with_issues.xlsx`에서 missing_required (Priority/Expected Result), invalid_enum (OS=MacOS), duplicate_tc_id (1-2), intra-tab Test Summary dup (메인 진입), cross-tab dup (TabA 1-6 ↔ TabB 1-3 차단 사용자 제외) 전건 검출
+- [x] `shared/` ↔ `skills/qa-review-tc/` 자동 동기화 (`scripts/sync_shared.py --check` 0 exit)
