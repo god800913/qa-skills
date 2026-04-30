@@ -17,10 +17,10 @@ SUMMARY_TAB_PATTERNS = ("Summary",)
 KNOWN_COLUMNS = {
     "Priority", "OS", "Automation Check", "Test Item",
     "Automation\nTC_ID", "Automation TC_ID", "TC_ID",
-    "Test Summary", "Test Summary ",
+    "Test Summary",
     "Remote Config\n/ Admin", "Remote Config / Admin",
     "Pre-condition", "Pre - condition",
-    "Test Step", "Test Reproduce", "Test Item ",
+    "Test Step", "Test Reproduce",
     "Expected Result",
     "Result", "Jira no.", "Comment",
     "Policy : URL", "Policy_page",
