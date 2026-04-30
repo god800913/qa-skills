@@ -199,3 +199,24 @@ def list_tabs(xlsx_path: Path) -> list[dict]:
             }
         )
     return out
+
+
+def main() -> None:
+    import argparse
+    import json as _json
+
+    parser = argparse.ArgumentParser(description="Inspect a master TC xlsx.")
+    parser.add_argument("xlsx_path", type=Path)
+    parser.add_argument("--tab", type=str, default=None)
+    args = parser.parse_args()
+
+    if args.tab is None:
+        out = {"tabs": list_tabs(args.xlsx_path)}
+    else:
+        out = parse_tab_meta(args.xlsx_path, args.tab)
+
+    print(_json.dumps(out, ensure_ascii=False, indent=2, default=str))
+
+
+if __name__ == "__main__":
+    main()
