@@ -67,6 +67,83 @@ def _detect_template(columns: dict[str, int]) -> str:
     return "mutual" if ("A" in columns and "B" in columns) else "single"
 
 
+TC_ID_PATTERN = re.compile(r"^(\d+)-(\d+)$")
+
+
+def _is_section_header(row: list, columns: dict[str, int]) -> bool:
+    """A row is a section header if Priority cell is numeric (e.g., 1.0) and
+    other key data cells (TC_ID, Test Summary) are blank."""
+    pri_idx = columns.get("Priority")
+    if pri_idx is None or pri_idx >= len(row):
+        return False
+    cell = row[pri_idx]
+    # Numeric-looking section index
+    if isinstance(cell, (int, float)):
+        return True
+    if isinstance(cell, str) and re.match(r"^\d+(\.\d+)?\.?\s+\S", cell):
+        # e.g. "1. 라운지 메인" pattern (some sheets use this)
+        return True
+    return False
+
+
+def _section_name(row: list, columns: dict[str, int]) -> str:
+    """Pick the most informative non-blank cell as section name."""
+    for idx, cell in enumerate(row):
+        if cell and idx != columns.get("Priority"):
+            return str(cell).strip()
+    # Fall back to Priority cell if everything else is blank
+    pri_idx = columns.get("Priority", 0)
+    return str(row[pri_idx]).strip() if pri_idx < len(row) else "(unnamed)"
+
+
+def _extract_tc_id(row: list, columns: dict[str, int]) -> str | None:
+    """Return the TC_ID string if present and matching the pattern."""
+    idx = columns.get("TC_ID")
+    if idx is None or idx >= len(row):
+        return None
+    cell = row[idx]
+    if not cell:
+        return None
+    s = str(cell).strip()
+    if TC_ID_PATTERN.match(s):
+        return s
+    return None
+
+
+def _parse_sections(rows: list[list], columns: dict[str, int], header_row_idx: int) -> list[dict]:
+    """Walk rows after the header, identify section headers and TC rows.
+
+    Returns sections in order, each with name, header_row, last_tc_id.
+    """
+    sections: list[dict] = []
+    current: dict | None = None
+
+    for idx in range(header_row_idx + 1, len(rows)):
+        row = rows[idx]
+        if not row or all(c is None or c == "" for c in row):
+            continue
+        if _is_section_header(row, columns):
+            if current is not None:
+                sections.append(current)
+            current = {
+                "name": _section_name(row, columns),
+                "header_row": idx,
+                "last_tc_id": None,
+            }
+            continue
+        # Regular TC row inside current section
+        if current is None:
+            # Implicit "no section" prefix — start a default section
+            current = {"name": "(default)", "header_row": header_row_idx, "last_tc_id": None}
+        tc_id = _extract_tc_id(row, columns)
+        if tc_id:
+            current["last_tc_id"] = tc_id
+
+    if current is not None:
+        sections.append(current)
+    return sections
+
+
 def _is_summary_tab(name: str) -> bool:
     return any(p in name for p in SUMMARY_TAB_PATTERNS)
 
@@ -74,7 +151,7 @@ def _is_summary_tab(name: str) -> bool:
 def parse_tab_meta(xlsx_path: Path, tab_name: str) -> dict:
     """Return structural metadata for one tab.
 
-    Output keys: tab, template_type, columns (dict header→index), header_row.
+    Output keys: tab, template_type, columns (dict header→index), header_row, sections.
     """
     wb = CalamineWorkbook.from_path(str(xlsx_path))
     rows = wb.get_sheet_by_name(tab_name).to_python()
@@ -92,6 +169,7 @@ def parse_tab_meta(xlsx_path: Path, tab_name: str) -> dict:
         "template_type": _detect_template(columns),
         "columns": columns,
         "header_row": header_row_idx,
+        "sections": _parse_sections(rows, columns, header_row_idx),
     }
 
 
