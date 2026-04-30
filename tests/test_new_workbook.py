@@ -89,3 +89,26 @@ class TestNewWorkbook:
         actual_out = result.stdout.strip().splitlines()[-1]
         assert actual_out != str(out)
         assert Path(actual_out).exists()
+
+
+class TestNewWorkbookMutual:
+    def test_mutual_template_has_a_and_b_columns(self, sample_rows_json: Path, tmp_path: Path):
+        out = tmp_path / "out.xlsx"
+        subprocess.run(
+            [sys.executable, "shared/new_workbook.py",
+             "--rows", str(sample_rows_json), "--output", str(out),
+             "--tab-name", "MutualTab", "--template", "mutual"],
+            check=True, capture_output=True, text=True,
+        )
+        wb = CalamineWorkbook.from_path(str(out))
+        rows = wb.get_sheet_by_name("MutualTab").to_python()
+        header_row = next(r for r in rows if "Priority" in r)
+        assert "A" in header_row
+        assert "B" in header_row
+        # A and B come right before Result
+        a_idx = header_row.index("A")
+        b_idx = header_row.index("B")
+        result_idx = header_row.index("Result")
+        assert a_idx < result_idx
+        assert b_idx < result_idx
+        assert a_idx == result_idx - 2
