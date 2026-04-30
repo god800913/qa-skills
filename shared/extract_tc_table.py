@@ -14,7 +14,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from inspect_master import parse_tab_meta  # noqa: E402
+from inspect_master import _is_section_header, parse_tab_meta  # noqa: E402
 
 from python_calamine import CalamineWorkbook  # noqa: E402
 
@@ -32,12 +32,8 @@ def extract_tc_table(xlsx_path: Path, tab_name: str) -> list[dict]:
         row = raw_rows[idx]
         if not row or all(c is None or c == "" for c in row):
             continue
-        # Skip section headers (Priority cell numeric)
-        pri_idx = columns.get("Priority")
-        if pri_idx is not None and pri_idx < len(row):
-            cell = row[pri_idx]
-            if isinstance(cell, (int, float)) and not isinstance(cell, bool):
-                continue
+        if _is_section_header(row, columns):
+            continue
         out.append({col: (row[col_idx] if col_idx < len(row) else None)
                     for col, col_idx in columns.items()})
     return out

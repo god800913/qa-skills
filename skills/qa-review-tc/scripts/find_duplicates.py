@@ -24,12 +24,17 @@ from pathlib import Path
 
 # Sibling
 sys.path.insert(0, str(Path(__file__).parent))
-from inspect_master import _is_summary_tab, parse_tab_meta  # noqa: E402
+from inspect_master import _is_section_header, _is_summary_tab, parse_tab_meta  # noqa: E402
 
 from python_calamine import CalamineWorkbook  # noqa: E402
 
 _WS_RE = re.compile(r"\s+")
 _PUNCT_RE = re.compile(r"[·\-_\.,/\\!?\(\)\[\]{}]")
+
+# Minimum normalized length for a Test Step to be considered for cross-tab dup.
+# Filters boilerplate prefixes like "1. 진입" (normalized → "1 진입", 4 chars)
+# that would otherwise produce floods of false positives across a large master.
+_CROSS_TAB_STEP_MIN_LEN = 12
 
 
 def _normalize(s: str) -> str:
@@ -56,12 +61,8 @@ def _load_tc_rows(xlsx_path: Path, tab_name: str) -> tuple[list[tuple[int, dict]
         row = raw_rows[idx]
         if not row or all(c is None or c == "" for c in row):
             continue
-        # Skip section headers
-        pri_idx = columns.get("Priority")
-        if pri_idx is not None and pri_idx < len(row):
-            cell = row[pri_idx]
-            if isinstance(cell, (int, float)) and not isinstance(cell, bool):
-                continue
+        if _is_section_header(row, columns):
+            continue
         rd = {col: row[col_idx] if col_idx < len(row) else None
               for col, col_idx in columns.items()}
         out.append((idx + 1, rd))  # 1-based excel_row
@@ -131,7 +132,7 @@ def _find_cross_tab(xlsx_path: Path, focus_tab: str,
                     (ot, excel_row, tc_id))
             if step:
                 key = _normalize(step)
-                if key:
+                if key and len(key) >= _CROSS_TAB_STEP_MIN_LEN:
                     other_steps.setdefault(key, []).append((ot, excel_row, tc_id))
 
     dups: list[dict] = []
@@ -151,7 +152,7 @@ def _find_cross_tab(xlsx_path: Path, focus_tab: str,
                 })
         if step:
             key = _normalize(step)
-            if key:
+            if key and len(key) >= _CROSS_TAB_STEP_MIN_LEN:
                 for other in other_steps.get(key, []):
                     dups.append({
                         "focus_tab": focus_tab, "focus_row": excel_row,

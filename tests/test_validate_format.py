@@ -58,3 +58,32 @@ class TestValidateFormat:
             assert "row" in issue
             assert isinstance(issue["row"], int)
             assert issue["row"] > 0
+
+    def test_string_form_section_header_skipped(self, tmp_path: Path):
+        """Real masters use string section headers like '1. 라운지 메인' instead of
+        numeric. Without unified _is_section_header, those would be treated as TC
+        rows and generate false-positive missing_required issues."""
+        from openpyxl import Workbook
+        wb = Workbook()
+        wb.remove(wb.active)
+        ws = wb.create_sheet("StringSec")
+        ws.append(["Priority", "OS", "Automation Check", "Test Item",
+                   "Automation TC_ID", "TC_ID", "Test Summary",
+                   "Remote Config / Admin", "Pre-condition", "Test Step",
+                   "Expected Result", "Result", "Jira no.", "Comment"])
+        # String-form section header — must be skipped
+        ws.append(["1. 라운지 메인", "", "", "", "", "", "", "", "", "", "", "", "", ""])
+        # Real TC row
+        ws.append(["P1", "All", "All", "라운지", "", "1-1", "라운지 진입",
+                   "", "신규", "1. 라운지", "라운지 노출", "", "", ""])
+        path = tmp_path / "string_sec.xlsx"
+        wb.save(path)
+
+        out = _run(path, "StringSec")
+        # If section header weren't skipped, we'd see missing_required issues for
+        # the section row. Total TC rows must be exactly 1.
+        assert out["summary"]["total_rows"] == 1, \
+            f"Expected 1 TC row (section skipped), got {out['summary']}"
+        # No missing_required issues — the one TC row is fully populated.
+        missing = [i for i in out["issues"] if i["category"] == "missing_required"]
+        assert missing == [], f"Unexpected missing_required: {missing}"

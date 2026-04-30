@@ -20,7 +20,7 @@ from pathlib import Path
 
 # Sibling import
 sys.path.insert(0, str(Path(__file__).parent))
-from inspect_master import parse_tab_meta  # noqa: E402
+from inspect_master import _is_section_header, parse_tab_meta  # noqa: E402
 from tc_row import (  # noqa: E402
     AUTOMATION_VALUES, OS_VALUES, PRIORITY_VALUES, REQUIRED_LLM_KEYS,
 )
@@ -56,12 +56,8 @@ def validate_format(xlsx_path: Path, tab_name: str) -> dict:
 
         if not row or all(c is None or c == "" for c in row):
             continue
-        # Section header detection (Priority cell numeric)
-        pri_idx = columns.get("Priority")
-        if pri_idx is not None and pri_idx < len(row):
-            cell = row[pri_idx]
-            if isinstance(cell, (int, float)) and not isinstance(cell, bool):
-                continue  # section header
+        if _is_section_header(row, columns):
+            continue
 
         total_tc_rows += 1
         rd = _row_to_dict(row, columns)

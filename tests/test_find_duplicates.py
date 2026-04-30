@@ -66,3 +66,28 @@ class TestFindDuplicates:
         # Summary tab's row should NOT appear in cross_tab
         summary_hits = [d for d in out["cross_tab"] if d["other_tab"] == "Summary"]
         assert summary_hits == []
+
+    def test_cross_tab_skips_short_test_step_noise(self, tmp_path: Path):
+        """Boilerplate Test Steps like '1. 진입' must NOT trigger cross-tab dup
+        flags. Otherwise a 28-tab master floods the report with false positives."""
+        from openpyxl import Workbook
+        wb = Workbook()
+        wb.remove(wb.active)
+        header = ["Priority", "OS", "Automation Check", "Test Item",
+                  "Automation TC_ID", "TC_ID", "Test Summary",
+                  "Remote Config / Admin", "Pre-condition", "Test Step",
+                  "Expected Result", "Result", "Jira no.", "Comment"]
+        for tab_name in ("TabX", "TabY"):
+            ws = wb.create_sheet(tab_name)
+            ws.append(header)
+            ws.append([1.0, "x", "", "", "", "", "", "", "", "", "", "", "", ""])
+            ws.append(["P1", "All", "All", "x", "", "1-1", f"{tab_name} 고유 시나리오",
+                       "", "x", "1. 진입", "x", "", "", ""])
+        path = tmp_path / "noise.xlsx"
+        wb.save(path)
+        out = _run(path, "TabX")
+        # Same boilerplate Test Step "1. 진입" in both tabs — must NOT flag.
+        step_hits = [d for d in out["cross_tab"]
+                     if d["field"] == "Test Step (normalized)"]
+        assert step_hits == [], \
+            f"Short boilerplate Test Step incorrectly flagged: {step_hits}"
