@@ -6,7 +6,7 @@ TC 작성 시 Figma 디자인을 보조 입력으로 쓰는 방법. Figma는 *TC
 
 특정 서버를 하드코딩하지 않는다. 세션에서 사용 가능한 도구를 확인:
 
-1. 도구 목록(또는 ToolSearch)에서 `figma` 키워드 검색.
+1. 사용 가능한 도구에서 `figma` 키워드 검색 — 도구가 deferred 상태면 ToolSearch(query: "figma")로 로드한 뒤 사용.
 2. 대표 계열:
    - **공식 Figma Dev Mode MCP** — 도구 예: `get_code`, `get_image`, `get_variable_defs`. Figma 데스크톱 앱에서 Dev Mode MCP 서버 활성화 필요.
    - **framelink (figma-developer-mcp)** — 도구 예: `get_figma_data`, `download_figma_images`. `FIGMA_API_KEY` 환경 변수 필요 (키를 명령에 하드코딩하지 말 것).
@@ -16,7 +16,7 @@ TC 작성 시 Figma 디자인을 보조 입력으로 쓰는 방법. Figma는 *TC
 ## URL 파싱
 
 - `https://www.figma.com/design/<FILE_KEY>/<name>?node-id=<NODE_ID>` 형태.
-- `FILE_KEY`와 `node-id`를 추출해 도구 인자로 사용. node-id의 `-`는 API에 따라 `:`로 바꿔야 할 수 있음.
+- `FILE_KEY`와 `node-id`를 추출해 도구 인자로 사용. framelink 계열은 하이픈(`-`) 형태 그대로, 공식 Dev Mode MCP는 콜론(`:`) 형태를 요구할 수 있음 — 호출 실패 시 `:` 변환 후 재시도.
 
 ## TC에 반영하는 정보
 
