@@ -6,6 +6,7 @@ Result enum (팀 표준 고정): Pass / Fail / Block / N/T / N/A
 - 빈 Result 셀은 "미입력" (미실행)으로 집계.
 - pass_rate = Pass / (Pass + Fail + Block) — N/T·N/A·미입력·unknown은 분모 제외.
 - 섹션은 TC_ID의 '-' 앞 접두사로 묶는다 ("3-12" → 섹션 "3").
+  섹션 접두사는 "첫 번째 하이픈 앞 전체"이므로 복합 ID(`A-1-2`)에서는 섹션 번호와 다를 수 있음.
 
 CLI:
     python parse_results.py <xlsx_path> --tab <tab_name>

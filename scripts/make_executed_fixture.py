@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent / "shared"))
 from new_workbook import write_workbook  # noqa: E402
 
-RESULTS = ["Pass", "Pass", "pass", "Pass", "Fail", "Block", "N/T", "성공"]
+RESULTS = ["Pass", "Pass", "pass", "Pass", "Fail", "Block", "N/T", "성공", "N/A", ""]
 JIRA = {4: "JIRA-2202", 5: "JIRA-2203"}
 
 rows = [
