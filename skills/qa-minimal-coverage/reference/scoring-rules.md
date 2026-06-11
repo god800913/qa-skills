@@ -10,8 +10,8 @@ score = risk_score + coverage_gain - execution_cost - redundancy_penalty
 
 - **risk_score** = PRIORITY_BASE[Priority] + 1.0 (고위험 키워드 포함 시)
 - **coverage_gain** = 0.5 × 아직 커버되지 않은 신규 리스크 태그 수
-- **execution_cost** = 0.1 × Test Step 줄 수 + 0.5 (Remote Config 셋업 있으면)
-- **redundancy_penalty** = 이미 커버된 태그 비율 (0.0 ~ 1.0)
+- **execution_cost** = 0.1 × Test Step 줄 수 (최소 1줄 취급) + 0.5 (Remote Config 셋업 있으면)
+- **redundancy_penalty** = 이미 커버된 태그 비율 (0.0 ~ 1.0, 태그 없는 행은 0.0)
 
 ## PRIORITY_BASE 표
 
@@ -32,14 +32,14 @@ score = risk_score + coverage_gain - execution_cost - redundancy_penalty
 ## 강제 포함 조건
 
 Priority == "P1" **또는** 위 HIGH_RISK_KEYWORDS 중 하나라도 텍스트에 포함.  
-강제 포함 행은 점수 계산 전에 먼저 선발되며, max-cases 한도에 포함된다.
+강제 포함 행은 greedy 전에 먼저 선발되며(risk_score 내림차순, 동점 시 원본 순서), max-cases 한도에 포함된다.
 
 ## Greedy 종료 조건
 
 다음 중 하나가 되면 greedy 루프가 멈춘다:
 1. 남은 후보가 없음
 2. `max_cases` 한도 도달
-3. 모든 후보의 `coverage_gain == 0` (신규 리스크 태그를 추가하는 TC가 없음)
+3. `coverage_gain > 0`이면서 `score > 0`인 후보가 없음 (신규 태그를 추가하는 TC가 없거나, 있어도 실행 비용 대비 점수가 0 이하)
 
 ## Excluded 사유 3종 (+ forced-overflow)
 
