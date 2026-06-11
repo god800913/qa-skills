@@ -1,6 +1,6 @@
 ---
 name: qa-generate-tc
-description: Notion PRD를 분석해서 표준 14컬럼 QA 테스트케이스를 xlsx로 생성. 신규 시트 모드 또는 기존 마스터 xlsx에 append 모드 지원. 사람 컨펌 루프 필수. 트리거 — "테스트 케이스 생성", "TC 만들어", "PRD에서 TC 뽑아", "/qa:generate-tc".
+description: Notion PRD(+옵션 Figma 디자인)를 분석해서 표준 14컬럼 QA 테스트케이스를 xlsx로 생성. 신규 시트 모드 또는 기존 마스터 xlsx에 append 모드 지원. 사람 컨펌 루프 필수. 트리거 — "테스트 케이스 생성", "TC 만들어", "PRD에서 TC 뽑아", "/qa:generate-tc".
 ---
 
 # qa:generate-tc
@@ -15,6 +15,12 @@ PRD를 표준 TC 표로 변환한다. 두 모드:
 - Notion URL이면 `notion-fetch` MCP로 페이지 본문 + 자식 블록 + 임베드 객체 fetch.
 - 본문이 50단어 미만이면 "PRD가 비어있는 듯, 본문 직접 붙여줄래?" 안내, 중단.
 - PRD가 모호하면 사용자에게 `qa:prd-clarify`를 먼저 돌리라고 권유 (강제는 안 함).
+- **[fetch 성공 시]** PRD 본문을 md 스냅샷으로 저장: 기본 `./prd-snapshots/<기능명>-<YYYYMMDD>.md` (기능명은 Notion 페이지 제목 또는 PRD 첫 H1에서 추출 — 공백은 하이픈으로, 특수문자 제거) (사용자가 다른 경로를 지정하면 그에 따름. 디렉토리 없으면 생성, 날짜는 `date '+%Y%m%d'`로 구함 — 암산 금지). 저장 경로를 사용자에게 알린다. 이 스냅샷은 나중에 `qa:prd-diff`가 PRD 변경분 분석에 사용한다.
+
+### 1.5 Figma 보강 (옵션)
+- 사용자가 Figma 링크를 줬거나 PRD에 Figma 임베드가 있으면 (임베드를 발견한 경우 사용자에게 알린 뒤) → 연결된 Figma MCP 도구를 감지 (도구명에 `figma` 포함 여부). 사용법·URL 파싱·반영 규칙은 `reference/figma-usage.md` 참조.
+- 연결됨: 프레임 구조·실제 텍스트·상태별 화면(빈/에러/로딩)을 읽어 Test Step·Expected Result를 화면 기준으로 구체화. 디자인에만 있는 상태는 TC로 만들되 Comment에 "PRD 미정의, 디자인 기준" 명시. PRD와 디자인 간 불일치 처리 규칙은 `reference/figma-usage.md` 참조.
+- 미연결: 진행을 막지 않는다. "Figma MCP를 연결하면 UI 상태 커버리지가 좋아집니다" 한 줄 안내 후 PRD 단독 모드.
 
 ### 2. 모드 결정
 사용자가 명시하지 않았으면 묻기:
