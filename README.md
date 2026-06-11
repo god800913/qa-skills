@@ -26,6 +26,7 @@ uv run pytest
 - `qa-release-checklist` — 릴리즈 sign-off 체크리스트 (Round 1, 출시 ✅)
 - `qa-prd-diff` — PRD 스냅샷 대비 변경분 → TC 영향 분류 (Round 2, 출시 ✅)
 - `qa-test-result-report` — Result 집계 → 결과 리포트 (Round 2, 출시 ✅)
+- `qa-exploratory-charter` — 탐색적 테스트 세션 차터 (Round 3, 출시 ✅)
 
 ## Claude Code에서 사용
 
