@@ -76,3 +76,19 @@ def test_input_rows_not_mutated():
     snapshot = copy.deepcopy(rows)
     select_minimal_coverage(rows)
     assert rows == snapshot
+
+
+def test_forced_overflow_rows_get_distinct_reason():
+    rows = [_row("P1", f"결제 핵심 {i}") for i in range(5)]
+    result = select_minimal_coverage(rows, max_cases=2, next_best_count=1)
+    assert len(result["selected"]) == 2
+    selected_idx = {s["index"] for s in result["selected"]}
+    leftovers = result["next_best"] + result["excluded"]
+    overflow = [item for item in leftovers if item["index"] not in selected_idx]
+    assert len(overflow) == 3
+    # next_best로 빠진 강제 포함 탈락 행에는 명시적 마커가 있어야 한다
+    assert all(n["forced_overflow"] is True for n in result["next_best"])
+    # excluded로 빠진 행은 사유에 "강제 포함 대상"이 드러나야 한다
+    excluded_reasons = [e["reason"] for e in result["excluded"]]
+    assert excluded_reasons
+    assert all("강제 포함 대상" in r for r in excluded_reasons)

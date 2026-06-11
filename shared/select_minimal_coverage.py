@@ -21,6 +21,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 PRIORITY_BASE = {"P1": 3.0, "P2": 2.0, "P3": 1.0, "P4": 0.5}
 
+# 부분 문자열 매칭이라 "콜렉션·프로토콜" 같은 오탐 가능 — 과포함이 안전한 방향이라 의도적 트레이드오프.
 HIGH_RISK_KEYWORDS = (
     "결제", "구매", "환불", "구독", "신고", "차단", "매치", "콜", "라이브",
     "권한", "로그인", "탈퇴", "remote config", "어드민",
@@ -74,22 +75,49 @@ def _marginal(row: dict, covered: frozenset[str]) -> tuple[float, float]:
     return score, gain
 
 
+def _exclusion_reason(tags: frozenset[str], covered: frozenset[str], idx: int,
+                      forced_overflow: frozenset[int], max_cases: int | None,
+                      selected_count: int) -> str:
+    if idx in forced_overflow:
+        return "강제 포함 대상이나 max-cases 초과로 제외 — 직접 검토 권장"
+    if tags and tags <= covered:
+        return "선택된 TC가 동일 리스크를 이미 커버 (중복)"
+    if max_cases is not None and selected_count >= max_cases:
+        return f"max-cases={max_cases} 도달"
+    return "점수 미달 (리스크 대비 실행 비용)"
+
+
+def _assemble_leftovers(remaining: list[tuple[int, dict]], covered: frozenset[str],
+                        next_best_count: int, max_cases: int | None,
+                        selected_count: int, forced_overflow: frozenset[int],
+                        ) -> tuple[list[dict], list[dict]]:
+    """Build (next_best, excluded) from unselected rows. Marks forced overflow."""
+    leftovers = sorted(((idx, row, *_marginal(row, covered)) for idx, row in remaining),
+                       key=lambda t: (-t[2], t[0]))
+    next_best = [{"index": i, "row": r, "score": round(s, 2),
+                  "new_tags": sorted(risk_tags(r) - covered),
+                  "forced_overflow": i in forced_overflow}
+                 for i, r, s, _g in leftovers[:next_best_count]]
+    excluded = [{"index": i, "row": r,
+                 "reason": _exclusion_reason(risk_tags(r), covered, i, forced_overflow,
+                                             max_cases, selected_count),
+                 "residual_risk": sorted(risk_tags(r) - covered)}
+                for i, r, _s, _g in leftovers[next_best_count:]]
+    return next_best, excluded
+
+
 def select_minimal_coverage(rows: list[dict], max_cases: int | None = None,
                             next_best_count: int = 5) -> dict:
     """Greedy risk-coverage selection.
 
-    Returns {"selected", "excluded", "next_best", "assumptions"}; each selected
-    item is {"index", "row", "score", "reasons", "new_tags"}.
-    """
+    Returns {"selected", "excluded", "next_best", "assumptions"};
+    selected item = {"index", "row", "score", "reasons", "new_tags"}."""
     assumptions = [
         "score = risk_score + coverage_gain - execution_cost - redundancy_penalty",
         "강제 포함: Priority P1 또는 고위험 키워드 (결제·신고·매치·콜·권한·Remote Config 등)",
     ]
-    selected: list[dict] = []
-    covered: frozenset[str] = frozenset()
-
-    forced: list[tuple[int, dict]] = []
-    remaining: list[tuple[int, dict]] = []
+    selected, covered = [], frozenset()          # list[dict], frozenset[str]
+    forced, remaining = [], []                   # 각: list[tuple[int, dict]]
     for idx, row in enumerate(rows):
         (forced if is_forced(row) else remaining).append((idx, row))
 
@@ -101,14 +129,14 @@ def select_minimal_coverage(rows: list[dict], max_cases: int | None = None,
                                 "reasons": reasons, "new_tags": new_tags}]
         covered = covered | risk_tags(row)
 
-    overflow_noted = False
+    overflow_idx: frozenset[int] = frozenset()
     for idx, row in sorted(forced, key=lambda p: (-risk_score(p[1]), p[0])):
         if max_cases is not None and len(selected) >= max_cases:
-            if not overflow_noted:
+            if not overflow_idx:
                 assumptions = assumptions + [
                     f"max-cases={max_cases} 제한으로 강제 포함 대상 일부 제외 — 잔여 리스크 확인 필요"]
-                overflow_noted = True
             remaining = remaining + [(idx, row)]
+            overflow_idx = overflow_idx | {idx}
             continue
         reason = ("강제 포함: P1" if str(row.get("Priority") or "").strip() == "P1"
                   else "강제 포함: 고위험 키워드")
@@ -124,24 +152,8 @@ def select_minimal_coverage(rows: list[dict], max_cases: int | None = None,
         pick(idx, row, [f"커버 확대: 신규 리스크 태그 {len(risk_tags(row) - covered)}개"])
         remaining = [(i, r) for i, r in remaining if i != idx]
 
-    leftovers = sorted(((idx, row, *_marginal(row, covered)) for idx, row in remaining),
-                       key=lambda t: (-t[2], t[0]))
-    next_best = [{"index": i, "row": r, "score": round(s, 2),
-                  "new_tags": sorted(risk_tags(r) - covered)}
-                 for i, r, s, _g in leftovers[:next_best_count]]
-
-    excluded = []
-    for i, r, _s, _g in leftovers[next_best_count:]:
-        tags = risk_tags(r)
-        if tags and tags <= covered:
-            reason = "선택된 TC가 동일 리스크를 이미 커버 (중복)"
-        elif max_cases is not None and len(selected) >= max_cases:
-            reason = f"max-cases={max_cases} 도달"
-        else:
-            reason = "점수 미달 (리스크 대비 실행 비용)"
-        excluded.append({"index": i, "row": r, "reason": reason,
-                         "residual_risk": sorted(tags - covered)})
-
+    next_best, excluded = _assemble_leftovers(remaining, covered, next_best_count,
+                                              max_cases, len(selected), overflow_idx)
     return {"selected": selected, "excluded": excluded,
             "next_best": next_best, "assumptions": assumptions}
 
