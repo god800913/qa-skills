@@ -22,6 +22,7 @@ def _mutual_row(tc_id, summary, priority="P2", os="", item="매치"):
         "Pre-condition": "", "A": "발신", "B": "수신",
         "Test Reproduce": "1. A가 매치 시작", "Expected Result": "ok",
         "Result": "", "Jira no.": "", "Comment": "",
+        "사내메모": "내부 전용",  # 비표준 컬럼 — 범용 보존 검증용
     }
 
 
@@ -31,7 +32,8 @@ def _selection(rows):
 
 COLUMNS = ["Priority", "OS", "Test Item", "TC_ID", "Test Summary",
            "Remote Config / Admin", "Pre-condition", "A", "B",
-           "Test Reproduce", "Expected Result", "Result", "Jira no.", "Comment"]
+           "Test Reproduce", "Expected Result", "Result", "Jira no.", "Comment",
+           "사내메모"]
 
 
 def test_writes_five_sheets(tmp_path: Path):
@@ -58,4 +60,14 @@ def test_excluded_sheet_has_reason(tmp_path: Path):
     out = export_minimal_coverage(selection, COLUMNS, tmp_path / "min.xlsx")
     ws = load_workbook(out)["Excluded TC"]
     assert ws.max_row >= 2
+    # 헤더: ["TC_ID", "Test Summary", "제외 사유", "잔여 리스크", "강제 대상"]
+    headers = [c.value for c in ws[1]]
+    assert headers == ["TC_ID", "Test Summary", "제외 사유", "잔여 리스크", "강제 대상"]
     assert ws.cell(row=2, column=3).value  # 제외 사유 비어있지 않음
+    # forced-overflow가 아닌 일반 제외 행은 강제 대상 컬럼이 "" 또는 빈 값
+    for row_idx in range(2, ws.max_row + 1):
+        forced_val = ws.cell(row=row_idx, column=5).value
+        assert forced_val in (None, "", False, "Y"), f"row {row_idx}: unexpected forced={forced_val!r}"
+    # forced_overflow가 없는 케이스라 모두 "" 이어야 함
+    for row_idx in range(2, ws.max_row + 1):
+        assert ws.cell(row=row_idx, column=5).value in (None, "")
