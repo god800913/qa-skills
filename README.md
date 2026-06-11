@@ -28,6 +28,7 @@ uv run pytest
 - `qa-test-result-report` — Result 집계 → 결과 리포트 (Round 2, 출시 ✅)
 - `qa-exploratory-charter` — 탐색적 테스트 세션 차터 (Round 3, 출시 ✅)
 - `qa-automation-candidates` — 자동화 전환 후보 우선순위 (Round 3, 출시 ✅)
+- `qa-bug-report` — 표준 버그 리포트 + Jira 초안(컨펌 필수) (Round 3, 출시 ✅)
 
 ## Claude Code에서 사용
 
