@@ -7,7 +7,7 @@
 ## 회귀 범위 — 라운지 선물하기
 
 **입력**: 라운지 선물하기 PRD + `master_tc.xlsx` (탭: Shop, Lounge, Login, More)
-**리스크 분석**: `sample-risk-report.md` 참조 (Blocker — 결제 이중 차감, Major — 플래그 off, iOS 권한 거부)
+**리스크 분석**: `sample-risk-report.md` (qa-risk-analysis 번들의 예시) 참조 (Blocker — 결제 이중 차감, Major — `enableLoungeGift` 플래그 off, iOS 권한 거부)
 
 ---
 
@@ -16,7 +16,7 @@
 | 탭 | 섹션 | 근거 |
 |---|---|---|
 | Shop | 전체 (젬 구매, 구매 내역, 환불 포함) | 결제·수익화 영역 직접 변경 (선물 구매 플로우 신규 추가). 리스크 매트릭스 #1 Blocker — 젬 이중 차감 시나리오 필수 검증. |
-| Lounge | 선물하기 진입 / 선물 발송 / 선물 수신 섹션 | 변경 당사자 영역. 신규 플로우 전체를 커버해야 하며 플래그 off 상태 진입점 노출 여부(리스크 #2) 포함. |
+| Lounge | 선물하기 진입 / 선물 발송 / 선물 수신 섹션 | 변경 당사자 영역. 신규 플로우 전체를 커버해야 하며 `enableLoungeGift` 플래그 off 상태 진입점 노출 여부(리스크 #2) 포함. |
 | Lounge | 매치 시작 / 콜 연결 섹션 | 선물 수신 후 콜 진입 플로우가 기존 매치 콜과 공유 컴포넌트 사용 (리스크 #3 iOS 권한 거부 → 크래시). 핵심 사용자 플로우 Blocker 등급. |
 
 ### Optional (시간 여유 시 실행)
