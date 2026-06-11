@@ -2,7 +2,7 @@
 
 Hyperconnect Azar QA 팀용 Claude Skills (PoC).
 
-상세 디자인: [`docs/superpowers/specs/2026-04-30-qa-skills-design.md`](docs/superpowers/specs/2026-04-30-qa-skills-design.md)
+상세 디자인: [`docs/superpowers/specs/2026-04-30-qa-skills-design.md`](docs/superpowers/specs/2026-04-30-qa-skills-design.md) (Phase 1~3) · [`docs/plans/2026-06-11-qa-skills-expansion-v2-design.md`](docs/plans/2026-06-11-qa-skills-expansion-v2-design.md) (Round 0~3 확장)
 
 ## 설치
 
