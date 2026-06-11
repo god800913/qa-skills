@@ -24,6 +24,8 @@ uv run pytest
 - `qa-regression-scope` — 회귀 범위 결정 md+xlsx (Round 1, 출시 ✅)
 - `qa-minimal-coverage` — 최소 실행 TC 세트 5시트 xlsx (Round 1, 출시 ✅)
 - `qa-release-checklist` — 릴리즈 sign-off 체크리스트 (Round 1, 출시 ✅)
+- `qa-prd-diff` — PRD 스냅샷 대비 변경분 → TC 영향 분류 (Round 2, 출시 ✅)
+- `qa-test-result-report` — Result 집계 → 결과 리포트 (Round 2, 출시 ✅)
 
 ## Claude Code에서 사용
 
@@ -61,3 +63,9 @@ uv run pytest
 - [x] **`qa:risk-analysis` fresh subagent smoke PASS** — sample_prd.md → Blocker 1(차단 사용자 추천 노출)/Major 4/Minor 2 매트릭스, 가정 5건 PM 확인 필요 분리, taxonomy 등급 정의 일관
 - [x] **`qa:regression-scope` fresh subagent smoke PASS** — 번들 스크립트(inspect/extract) 직접 호출로 탭 인벤토리, Required 5/Optional 4/Skipped 2(잔여 리스크 명시)/OQ 5, 픽스처의 의도된 TC 품질 이슈(TC_ID 중복·Expected Result 공란)까지 검출
 - [x] **`qa:release-checklist` fresh subagent smoke PASS** — 정보 없는 게이트 4개를 추정 없이 "확인 불가" 처리, 미검증 차단 영역(Block 1건)을 G1 실패로 판정해 BLOCKED 출력
+
+### Round 2 검증 (2026-06-11)
+- [x] **단위 테스트 8개 추가** 전부 통과 (parse_results 7 + 실행 픽스처 통합 1) — 누적 **68개 PASS**, `sync_shared.py --check` exit 0
+- [x] **`qa:test-result-report` fresh subagent smoke PASS** — sample_tc_executed.xlsx(10건) 집계, unknown("성공") 1건을 임의 재분류 없이 사용자 확인으로 에스컬레이션, 통과율 66.7%와 분모 정의(Pass/(Pass+Fail+Block), N/T·N/A·미입력 제외)를 리포트에 명시
+- [x] **`qa:prd-diff` fresh subagent smoke PASS** — difflib 보조 신호 + LLM 의미 분석으로 변경 3건 분류(이벤트 트리거 문구 변경을 "동작 변경"으로 정확 판별), TC_ID 1-6을 폐기 후보로 매핑하되 "동작 유지 시 폐기 금지" 주의를 Open Questions로 분리
+- [x] PRD 스냅샷 규약 — `qa:prd-clarify`에도 추가 완료 (generate-tc와 문구 동일), md 붙여넣기 입력 시 저장 생략 판단 정상
