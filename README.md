@@ -27,6 +27,7 @@ uv run pytest
 - `qa-prd-diff` — PRD 스냅샷 대비 변경분 → TC 영향 분류 (Round 2, 출시 ✅)
 - `qa-test-result-report` — Result 집계 → 결과 리포트 (Round 2, 출시 ✅)
 - `qa-exploratory-charter` — 탐색적 테스트 세션 차터 (Round 3, 출시 ✅)
+- `qa-automation-candidates` — 자동화 전환 후보 우선순위 (Round 3, 출시 ✅)
 
 ## Claude Code에서 사용
 
