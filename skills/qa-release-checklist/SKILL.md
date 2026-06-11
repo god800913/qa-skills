@@ -18,7 +18,7 @@ QA 증거를 모아 릴리즈 판정(ready / conditional / blocked)을 내린다
 `reference/release-gates.md`의 7개 게이트(Blocker/Major/known issue/rollout/rollback/monitoring/owner)를 입력과 대조. 입력에 정보가 없는 게이트는 "확인 불가"로 표시 — 추정으로 통과 처리 금지.
 
 ### 2. 판정
-- **blocked**: Blocker 게이트 1개라도 실패.
+- **blocked**: Blocker 게이트(G1) 실패 또는 G1 확인 불가.
 - **conditional**: Major 미해결이 있으나 risk-accept 가능 — 조건 명시.
 - **ready**: 전 게이트 통과 또는 합리적 예외.
 
