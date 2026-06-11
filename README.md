@@ -64,7 +64,7 @@ PRD를 표준 TC 표로 변환한다. **신규 시트 모드**(빈 워크북에 
 ### ③ 실행 계획
 
 #### `qa-regression-scope` — 회귀 범위 결정 (md + xlsx)
-이번 변경에 대해 기존 TC 중 무엇을 다시 돌릴지 탭·섹션 단위로 판정한다.
+이번 변경에서 기존 TC 중 무엇을 다시 돌릴지 탭·섹션 단위로 판정한다.
 - **입력**: PRD/변경 요약 + 기존 TC xlsx (필수), 리스크 분석 리포트 (강력 권장)
 - **처리**: `reference/scope-rules.md` 적용 → Required(직접 영향 + Blocker 영역) / Optional / Skipped(생략 근거·잔여 리스크 기록 필수) / Open Questions
 - **출력**: 4분류 md + (원하면) 요약 xlsx
