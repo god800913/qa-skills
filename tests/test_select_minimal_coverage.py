@@ -92,3 +92,5 @@ def test_forced_overflow_rows_get_distinct_reason():
     excluded_reasons = [e["reason"] for e in result["excluded"]]
     assert excluded_reasons
     assert all("강제 포함 대상" in r for r in excluded_reasons)
+    # excluded 항목에도 forced_overflow 필드가 있어야 한다 (next_best와 대칭)
+    assert all(e["forced_overflow"] is True for e in result["excluded"])

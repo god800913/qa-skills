@@ -101,7 +101,8 @@ def _assemble_leftovers(remaining: list[tuple[int, dict]], covered: frozenset[st
     excluded = [{"index": i, "row": r,
                  "reason": _exclusion_reason(risk_tags(r), covered, i, forced_overflow,
                                              max_cases, selected_count),
-                 "residual_risk": sorted(risk_tags(r) - covered)}
+                 "residual_risk": sorted(risk_tags(r) - covered),
+                 "forced_overflow": i in forced_overflow}
                 for i, r, _s, _g in leftovers[next_best_count:]]
     return next_best, excluded
 
