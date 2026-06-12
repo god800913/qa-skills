@@ -1,7 +1,7 @@
 # 예시: 테스트 결과 리포트 — 실행 샘플 (TabExec)
 
 > 입력: `tests/fixtures/sample_tc_executed.xlsx` TabExec (10건)
-> 집계: `uv run python scripts/parse_results.py tests/fixtures/sample_tc_executed.xlsx --tab TabExec`
+> 집계: `uv run scripts/parse_results.py tests/fixtures/sample_tc_executed.xlsx --tab TabExec`
 
 ---
 

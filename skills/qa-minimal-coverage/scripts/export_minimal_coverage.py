@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Export a minimal-coverage selection to a 5-sheet workbook.
 
 Sheets: Selected TC / Coverage Summary / Excluded TC / Next Best / Assumptions.

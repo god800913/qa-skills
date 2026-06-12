@@ -15,7 +15,7 @@ description: 실행 완료된 QA TC xlsx의 Result 컬럼(Pass/Fail/Block/N/T/N/
 
 ### 1. 집계 (결정론)
 ```bash
-uv run python scripts/parse_results.py <xlsx> --tab "<탭>"
+uv run scripts/parse_results.py <xlsx> --tab "<탭>"
 ```
 JSON 결과: total, counts(enum별+미입력+unknown), pass_rate(= Pass/(Pass+Fail+Block)), by_priority, by_section, fails/blocks(tc_id·summary·Jira), unknown(원래 값 포함).
 
