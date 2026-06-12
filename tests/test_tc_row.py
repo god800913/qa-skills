@@ -41,3 +41,12 @@ class TestValidateRow:
             "Test Step": "x", "Expected Result": "x",
         }
         assert validate_row(row) == []
+
+    def test_automation_check_is_not_validated(self):
+        """Automation Check는 사람-소관 컬럼 — 어떤 값이든 검증 대상이 아니다."""
+        row = {
+            "Priority": "P1", "Automation Check": "임의값",
+            "Test Summary": "x", "Pre-condition": "x",
+            "Test Step": "x", "Expected Result": "x",
+        }
+        assert validate_row(row) == []

@@ -14,7 +14,7 @@ description: PRD나 변경 요약을 QA 관점으로 분석해 고위험 영역,
 ## 워크플로우
 
 ### 1. 입력 수집
-- Notion URL이면 MCP로 fetch. 본문 50단어 미만이면 변경 요약을 직접 요청.
+- Notion URL이면 `reference/notion-fetch-policy.md`에 따라 fetch: 도구 런타임 감지(미연결 시 본문 직접 붙여넣기 요청 후 중단), 내부 링크 1-depth follow, 소스 매니페스트 의무. 본문 50단어 미만이면 변경 요약을 직접 요청.
 - 입력이 PRD인지 변경 요약인지 구분해 리포트에 명시.
 
 ### 2. 리스크 식별

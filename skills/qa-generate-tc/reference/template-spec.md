@@ -6,7 +6,7 @@
 |---|---|---|---|
 | Priority | enum P1~P4 | 중요도 | 핵심=P1, 일반=P2, 부가=P3, 엣지=P4 |
 | OS | enum iOS/And/All/공란 | 플랫폼 한정 | PRD에 명시 없으면 공란 |
-| Automation Check | enum All/iOS/Android/Skip | 자동화 가능성 | 단순 UI=All, 복잡=Skip |
+| Automation Check | str | 자동화 여부 표기 | 비움 (사람 채움) |
 | Test Item | str | 시나리오 그룹명 | 섹션 내 서브카테고리 |
 | Automation TC_ID | str | 자동화 ID 매핑 | LLM은 비워둠 |
 | TC_ID | `<섹션>-<순번>` | 식별자 | 자동 증분 |

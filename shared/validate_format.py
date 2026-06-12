@@ -26,7 +26,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from inspect_master import _is_section_header, parse_tab_meta  # noqa: E402
 from tc_row import (  # noqa: E402
-    AUTOMATION_VALUES, OS_VALUES, PRIORITY_VALUES, REQUIRED_LLM_KEYS,
+    OS_VALUES, PRIORITY_VALUES, REQUIRED_LLM_KEYS,
 )
 
 from python_calamine import CalamineWorkbook  # noqa: E402
@@ -80,7 +80,7 @@ def validate_format(xlsx_path: Path, tab_name: str) -> dict:
                     "message": f"{k} is empty",
                 })
 
-        # invalid_enum (Priority, OS, Automation Check)
+        # invalid_enum (Priority, OS)
         if (pri := rd.get("Priority")) and pri not in PRIORITY_VALUES:
             issues.append({
                 "row": excel_row,
@@ -99,16 +99,6 @@ def validate_format(xlsx_path: Path, tab_name: str) -> dict:
                 "severity": "minor",
                 "message": f"Invalid OS '{os_v}' (must be iOS/And/Android/All/blank)",
             })
-        if (auto := rd.get("Automation Check")) is not None and str(auto).strip() not in AUTOMATION_VALUES:
-            issues.append({
-                "row": excel_row,
-                "tc_id": str(tc_id) if tc_id else "",
-                "category": "invalid_enum",
-                "field": "Automation Check",
-                "severity": "minor",
-                "message": f"Invalid Automation Check '{auto}'",
-            })
-
         # Track for dup detection
         if tc_id and isinstance(tc_id, str) and tc_id.strip():
             tc_id_seen.append((excel_row, tc_id.strip()))

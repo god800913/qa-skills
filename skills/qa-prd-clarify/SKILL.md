@@ -1,6 +1,6 @@
 ---
 name: qa-prd-clarify
-description: Notion PRD를 QA 관점으로 분석해서 모호점·누락 엣지·미정의 상태를 PM에게 돌려보낼 질문 리스트로 추출. 테스트케이스를 짜기 *전* 단계에서 사용. 트리거 예시 — "PRD 검토해줘", "PRD에서 모호한 부분 찾아", "PM에게 물어볼 거 정리".
+description: Notion PRD를 QA 관점으로 분석해서 모호점·누락 엣지·미정의 상태를 PM에게 돌려보낼 질문 리스트로 추출. 테스트케이스를 짜기 *전* 단계에서 사용. 트리거 — "PRD 검토해줘", "PRD에서 모호한 부분 찾아", "PM에게 물어볼 거 정리", "/qa:prd-clarify".
 ---
 
 # qa:prd-clarify

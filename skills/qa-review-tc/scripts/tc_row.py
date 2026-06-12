@@ -9,7 +9,7 @@ from __future__ import annotations
 TC_COLUMN_KEYS = (
     "Priority",            # P1~P4
     "OS",                  # iOS / And / All / "" (blank)
-    "Automation Check",    # All / iOS / Android / Skip / "" (blank)
+    "Automation Check",    # human-filled; LLM leaves blank
     "Test Item",
     "Automation TC_ID",    # human-filled; LLM leaves blank
     "TC_ID",               # auto-incremented per section
@@ -33,7 +33,6 @@ REQUIRED_LLM_KEYS = (
 
 PRIORITY_VALUES = {"P1", "P2", "P3", "P4"}
 OS_VALUES = {"iOS", "And", "Android", "All", ""}
-AUTOMATION_VALUES = {"All", "iOS", "Android", "Skip", ""}
 
 
 def validate_row(row: dict, *, source_label: str = "row") -> list[str]:
@@ -50,6 +49,4 @@ def validate_row(row: dict, *, source_label: str = "row") -> list[str]:
         errors.append(f"{source_label}: invalid Priority '{pri}' (must be P1~P4)")
     if (os_v := row.get("OS")) is not None and os_v not in OS_VALUES:
         errors.append(f"{source_label}: invalid OS '{os_v}' (must be iOS/And/Android/All/blank)")
-    if (auto := row.get("Automation Check")) is not None and auto not in AUTOMATION_VALUES:
-        errors.append(f"{source_label}: invalid Automation Check '{auto}'")
     return errors

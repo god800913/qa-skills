@@ -53,6 +53,19 @@ def test_preserves_all_source_columns_and_tc_id(tmp_path: Path):
     assert row2["실행 순서"] == 1
 
 
+def test_next_best_sheet_marks_forced_overflow(tmp_path: Path):
+    """강제 포함 대상이 max-cases에 밀려 Next Best로 넘어가면 '강제 대상' = Y."""
+    rows = [_mutual_row(f"1-{i}", f"매치 시나리오 {i}") for i in range(5)]  # 전부 강제(매치)
+    selection = select_minimal_coverage(rows, max_cases=2, next_best_count=2)
+    out = export_minimal_coverage(selection, COLUMNS, tmp_path / "min.xlsx")
+    ws = load_workbook(out)["Next Best"]
+    headers = [c.value for c in ws[1]]
+    assert headers == ["TC_ID", "Test Summary", "점수", "추가 커버", "강제 대상"]
+    forced_vals = [ws.cell(row=r, column=5).value for r in range(2, ws.max_row + 1)]
+    assert forced_vals and all(v == "Y" for v in forced_vals), \
+        f"강제 초과분이 Y로 표시돼야 함: {forced_vals}"
+
+
 def test_excluded_sheet_has_reason(tmp_path: Path):
     rows = [_mutual_row("1-1", "매치 성사")] + [
         _mutual_row(f"2-{i}", "라벨 확인", priority="P4", item="설정") for i in range(8)]
