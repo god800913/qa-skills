@@ -37,7 +37,7 @@ description: PRD나 변경 요약을 QA 관점으로 분석해 고위험 영역,
 ### 4. 요약 xlsx 생성 (사용자가 원하면)
 매트릭스를 JSON으로 만들어:
 ```bash
-uv run python scripts/summary_xlsx.py --sheets /tmp/risk_sheets.json --output <out>.xlsx
+uv run scripts/summary_xlsx.py --sheets /tmp/risk_sheets.json --output <out>.xlsx
 ```
 sheets는 2개: "리스크 매트릭스", "가정". stdout 마지막 줄이 실제 출력 경로.
 

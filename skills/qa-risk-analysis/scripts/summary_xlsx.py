@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Write a summary workbook from a list of sheet specs.
 
 Generic exporter for md+xlsx skills (qa-risk-analysis, qa-regression-scope).

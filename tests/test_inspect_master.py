@@ -60,6 +60,44 @@ class TestParseTabMeta:
         assert meta["template_type"] == "single"
 
 
+def make_mutual_xlsx(tmp_path: Path) -> Path:
+    """Build a mutual-template tab (Test Reproduce + A/B columns) like real `in Match` tabs."""
+    from openpyxl import Workbook
+
+    wb = Workbook()
+    wb.remove(wb.active)
+    ws = wb.create_sheet("in Match")
+    ws.append([
+        "Priority", "OS", "Automation Check", "Test Item", "Automation TC_ID",
+        "TC_ID", "Test Summary", "Remote Config / Admin", "Pre-condition",
+        "Test Reproduce", "Expected Result", "A", "B", "Result", "Jira no.", "Comment",
+    ])
+    ws.append([1.0, "", "", "매치 기본", "", "", "", "", "", "", "", "", "", "", "", ""])
+    ws.append([
+        "P1", "All", "Skip", "매치 진입", "", "1-1", "양측 매치 연결", "",
+        "두 계정 로그인", "A: 매치 시작\nB: 매치 수락", "영상 연결됨",
+        "기기A", "기기B", "", "", "",
+    ])
+    path = tmp_path / "mutual.xlsx"
+    wb.save(path)
+    return path
+
+
+class TestParseTabMetaMutual:
+    def test_template_type_detected_as_mutual(self, tmp_path: Path):
+        meta = parse_tab_meta(make_mutual_xlsx(tmp_path), "in Match")
+        assert meta["template_type"] == "mutual"
+
+    def test_test_reproduce_maps_to_canonical_test_step(self, tmp_path: Path):
+        meta = parse_tab_meta(make_mutual_xlsx(tmp_path), "in Match")
+        # "Test Reproduce" must canonicalize to "Test Step" so downstream
+        # consumers (validate_format, find_duplicates, select_minimal_coverage)
+        # see a single canonical key.
+        assert "Test Step" in meta["columns"]
+        assert "Test Reproduce" not in meta["columns"]
+        assert meta["columns"]["Test Step"] == 9
+
+
 class TestParseTabMetaErrors:
     def test_header_not_found_error_includes_tab_and_file_context(self, tmp_path: Path):
         from openpyxl import Workbook

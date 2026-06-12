@@ -112,3 +112,36 @@ class TestNewWorkbookMutual:
         assert a_idx < result_idx
         assert b_idx < result_idx
         assert a_idx == result_idx - 2
+
+    def test_mutual_header_renames_test_step_to_test_reproduce(
+            self, sample_rows_json: Path, tmp_path: Path):
+        out = tmp_path / "out.xlsx"
+        subprocess.run(
+            [sys.executable, "shared/new_workbook.py",
+             "--rows", str(sample_rows_json), "--output", str(out),
+             "--tab-name", "MutualTab", "--template", "mutual"],
+            check=True, capture_output=True, text=True,
+        )
+        wb = CalamineWorkbook.from_path(str(out))
+        rows = wb.get_sheet_by_name("MutualTab").to_python()
+        header_row = next(r for r in rows if "Priority" in r)
+        assert "Test Reproduce" in header_row
+        assert "Test Step" not in header_row
+
+    def test_mutual_rows_keyed_test_step_land_in_reproduce_column(
+            self, sample_rows_json: Path, tmp_path: Path):
+        out = tmp_path / "out.xlsx"
+        subprocess.run(
+            [sys.executable, "shared/new_workbook.py",
+             "--rows", str(sample_rows_json), "--output", str(out),
+             "--tab-name", "MutualTab", "--template", "mutual"],
+            check=True, capture_output=True, text=True,
+        )
+        wb = CalamineWorkbook.from_path(str(out))
+        rows = wb.get_sheet_by_name("MutualTab").to_python()
+        header_row = next(r for r in rows if "Priority" in r)
+        repro_idx = header_row.index("Test Reproduce")
+        tc_id_idx = header_row.index("TC_ID")
+        tc_row = next(r for r in rows if len(r) > tc_id_idx and r[tc_id_idx] == "1-1")
+        # rows.json uses the canonical "Test Step" key — the value must not be dropped
+        assert tc_row[repro_idx] == "1. 앱 실행\n2. 라운지 탭 진입"

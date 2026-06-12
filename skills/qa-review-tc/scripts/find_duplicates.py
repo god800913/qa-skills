@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Find duplicate TCs within a tab and across tabs in the same xlsx file.
 
 CLI:

@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Append TC rows to a specific tab of an existing master xlsx.
 
 Usage:

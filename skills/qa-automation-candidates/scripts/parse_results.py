@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Parse and aggregate the Result column of an executed TC workbook.
 
 Result enum (팀 표준 고정): Pass / Fail / Block / N/T / N/A

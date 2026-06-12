@@ -87,3 +87,15 @@ class TestValidateFormat:
         # No missing_required issues — the one TC row is fully populated.
         missing = [i for i in out["issues"] if i["category"] == "missing_required"]
         assert missing == [], f"Unexpected missing_required: {missing}"
+
+
+class TestValidateFormatMutual:
+    def test_filled_test_reproduce_not_flagged_missing(self, tmp_path: Path):
+        from tests.test_inspect_master import make_mutual_xlsx
+
+        out = _run(make_mutual_xlsx(tmp_path), "in Match")
+        step_issues = [i for i in out["issues"]
+                       if i["category"] == "missing_required" and i["field"] == "Test Step"]
+        assert step_issues == [], (
+            "Test Reproduce column must satisfy the Test Step requirement on mutual tabs"
+        )

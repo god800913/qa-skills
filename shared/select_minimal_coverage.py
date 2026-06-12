@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Select a minimal TC execution set that maximizes risk coverage.
 
 Deterministic scoring over canonical row dicts:
