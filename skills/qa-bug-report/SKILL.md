@@ -19,7 +19,7 @@ description: Fail/Block된 TC와 보충 정보(환경·재현 빈도·로그)를
 - 제목: `[영역] 증상 — 발생 조건` 한 줄
 - 재현 단계: TC의 Test Step을 기반으로 하되, 실제 재현에 필요한 세부(계정 상태·플래그 값)를 보충
 - 기대 결과: TC의 Expected Result 기반 / 실제 결과: 사용자 보고 그대로
-- 심각도: Blocker/Major/Minor + 근거 (`risk-taxonomy` 영역 기준 — 결제·신고·핵심 플로우면 상향)
+- 심각도: Blocker/Major/Minor + 근거 (`reference/risk-taxonomy.md` 영역 기준 — 결제·신고·핵심 플로우면 상향)
 - 관련 TC_ID, 재현 빈도, 첨부 목록 명시
 
 ### 2. Jira 초안 (옵션)

@@ -19,8 +19,8 @@ QA 증거를 모아 릴리즈 판정(ready / conditional / blocked)을 내린다
 
 ### 2. 판정
 - **blocked**: Blocker 게이트(G1) 실패 또는 G1 확인 불가.
-- **conditional**: Major 미해결이 있으나 risk-accept 가능 — 조건 명시.
-- **ready**: 전 게이트 통과 또는 합리적 예외.
+- **conditional**: Major 미해결이 있으나 risk-accept 가능(조건 명시), 또는 G2~G7 중 실패·확인 불가가 1개 이상.
+- **ready**: 전 게이트 통과 + 확인 불가 0건. 예외 없음 — 정보가 부족하면 ready 대신 conditional로 내리고 채워야 할 조건을 명시한다.
 
 ### 3. 출력 (md)
 판정 + 게이트별 표 (통과/실패/확인 불가 + 근거) + blocker 조건 + rollout/rollback 체크 + 잔여 known issue.
