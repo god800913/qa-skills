@@ -4,7 +4,7 @@ Hyperconnect Azar QA 팀용 Claude Skills 모음 (PoC).
 
 PRD 검토부터 테스트케이스 작성·검수, 실행 계획, 결과 집계, 릴리즈 sign-off까지 QA 업무 생애주기 전반을 12개 스킬로 커버한다. 각 스킬은 Claude가 자연어 트리거(예: "리스크 분석해줘", "TC 만들어")로 자동 호출하며, 결정론이 중요한 부분(xlsx 파싱·포맷 검증·집계)은 Python 스크립트가, 판단이 필요한 부분(리스크 등급·커버리지·톤)은 LLM이 맡는 하이브리드 구조다.
 
-> **운영 환경**: 팀의 TC 마스터는 14컬럼 표준 xlsx(Google Sheets). PRD는 Notion, 디자인은 Figma, 버그 트래킹은 Jira. 각 외부 시스템은 MCP로 연결되며, 미연결 시에도 해당 단계를 건너뛰고 진행한다.
+> **운영 환경**: 팀의 TC 마스터는 14컬럼 표준 xlsx(Google Sheets). PRD는 Notion, 디자인은 Figma, 버그 트래킹은 Jira. 각 외부 시스템은 MCP로 연결되며, Figma·Jira는 미연결 시 해당 단계만 건너뛰고 진행한다. 단 Notion PRD가 **필수 입력**인 스킬은 건너뛸 수 없으므로 본문 직접 붙여넣기를 요청하고 중단한다 (`shared-reference/notion-fetch-policy.md`).
 
 ---
 
@@ -58,7 +58,7 @@ PRD를 표준 TC 표로 변환한다. **신규 시트 모드**(빈 워크북에 
 작성된 TC를 5개 카테고리로 검수한다: A.포맷 / B.탭 내 일관성 / C.탭 간 중복 (셋 다 결정론 스크립트) / D.커버리지 (LLM, PRD 제공 시) / E.톤·도메인 (LLM).
 - **입력**: TC xlsx + `--tab` (필수), `--prd-url`(D 활성화)·`--severity`·`--patch` (옵션)
 - **처리**: `validate_format.py`(필수 누락·enum 위반·TC_ID 중복) + `find_duplicates.py`(탭 내·탭 간) + `extract_tc_table.py` → LLM이 `coverage-checklist.md`로 D·E 점검
-- **출력**: 심각도별 마크다운 리포트. `--patch` 시 **자동 수정 가능 이슈(포맷·TC_ID 중복)만** 새 xlsx로 (원본 미수정)
+- **출력**: 심각도별 마크다운 리포트. `--patch` 시 **자동 수정 가능 이슈(TC_ID 중복)만** 새 xlsx로 (원본 미수정 — 필수 누락·enum 위반은 사람 판단 영역이라 리포트만)
 - **트리거**: "TC 리뷰", "테스트케이스 검토", "TC 문제점 찾아"
 
 ### ③ 실행 계획
@@ -121,7 +121,7 @@ QA 증거를 모아 릴리즈 판정(ready / conditional / blocked)을 내린다
 #### `qa-automation-candidates` — 자동화 전환 후보 우선순위
 수동 TC 중 자동화로 옮길 후보를 골라 우선순위를 매긴다.
 - **입력**: TC xlsx + 탭 (필수, 여러 탭 가능), 실행 결과 이력 (옵션)
-- **처리**: `Automation Check`가 All/iOS/Android면서 `Automation TC_ID`가 **비어 있는 행만** 후보 (이미 자동화된 행·Skip 행 제외). 반복 빈도·수동 비용·안정성·결과 이력으로 우선순위
+- **처리**: `select_automation_candidates.py`가 결정론 필터 — `Automation Check`가 All/iOS/Android면서 `Automation TC_ID`가 **비어 있는 행만** 후보 (이미 자동화된 행·Skip 행 제외, 공란은 분류 미정). 우선순위는 LLM이 반복 빈도·수동 비용·안정성·결과 이력으로 판단
 - **출력**: 우선순위 표 + 분류 미정/제외 요약 md
 - **트리거**: "자동화 후보", "뭐부터 자동화하지"
 
@@ -152,7 +152,7 @@ qa-skills/
 ├── shared/                 # 결정론 스크립트의 단일 진실원천 (SoT)
 ├── shared-reference/       # 참조 문서의 단일 진실원천
 ├── scripts/sync_shared.py  # shared → 각 스킬 번들로 복사 동기화
-├── tests/                  # shared/ 스크립트 단위 테스트 (68개)
+├── tests/                  # 단위 테스트 132개 — shared/ + sync 정책 + 스킬 메타
 └── docs/plans/             # 설계·구현 플랜 기록
 ```
 
@@ -176,7 +176,7 @@ uv sync
 ## 테스트
 
 ```bash
-uv run pytest          # 68개 — shared/ 스크립트 전부 커버
+uv run pytest          # 132개 — shared/ 스크립트 전부 + sync_shared 정책 + 스킬 번들 메타(frontmatter·참조 실존·README 목록 일치)
 ```
 
 ---
@@ -201,7 +201,7 @@ cp -r skills/qa-generate-tc ~/.claude/skills/
 
 - Anthropic Skills 마켓플레이스에 업로드하거나 `~/.claude/skills/`로 복사한다.
 - 스크립트를 쓰는 스킬은 실행 환경에 `openpyxl`·`python-calamine`(과 `uv` 또는 `python3`)이 필요하다.
-- Notion·Figma·Atlassian(Jira) 연동은 해당 MCP 연결을 전제로 하되, 미연결 시 그 단계만 건너뛰고 나머지는 동작한다.
+- Figma·Atlassian(Jira) 연동은 해당 MCP 연결을 전제로 하되, 미연결 시 그 단계만 건너뛰고 나머지는 동작한다. Notion PRD가 필수 입력인 스킬은 Notion MCP 미연결 시 본문 직접 붙여넣기를 요청한다.
 
 ---
 
