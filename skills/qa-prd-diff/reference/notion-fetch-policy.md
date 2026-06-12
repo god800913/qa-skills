@@ -1,6 +1,6 @@
 # Notion PRD 수집 정책 (notion-fetch-policy)
 
-> `qa:prd-clarify` · `qa:generate-tc` · `qa:prd-diff`가 Notion PRD를 fetch할 때 공통 적용.
+> `qa:prd-clarify` · `qa:generate-tc` · `qa:prd-diff` · `qa:risk-analysis`가 Notion PRD를 fetch할 때 공통 적용.
 > 목적: "메인 페이지만 읽었는데 핵심 스펙이 하위 페이지에 있었다"류 누락 방지 + 무엇을 읽었는지 투명화.
 
 ## 1. 도구 감지
@@ -31,7 +31,7 @@ Notion 도구명은 환경마다 다르다 (`notion-fetch`, `mcp__claude_ai_Noti
 
 ## 4. 소스 매니페스트 (의무)
 
-분석 산출물(클래리파이 리포트·TC 미리보기·diff 리포트) **머리에** 무엇을 읽었고 무엇을 못 읽었는지 명시:
+분석 산출물(클래리파이 리포트·TC 미리보기·diff 리포트·리스크 매트릭스) **머리에** 무엇을 읽었고 무엇을 못 읽었는지 명시:
 
 ```markdown
 > **분석 소스**
