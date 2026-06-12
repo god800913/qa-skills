@@ -41,6 +41,6 @@
 
 `Result` 컬럼의 팀 표준 값: `Pass` / `Fail` / `Block` / `N/T` / `N/A` (대소문자 무시 매칭, 빈 셀 = 미입력).
 
-> 이 항목은 `qa:test-result-report`의 `parse_results.py`가 집계 시 검사하는 기준이며,
+> 이 항목은 `parse_results.py`(qa:test-result-report)가 소유하는 기준이며, `diff_results.py`(qa:result-diff)도 같은 정규화를 재사용한다.
 > `validate_format.py`(qa:review-tc)의 결정론 검출 항목이 **아니다** — 작성 시점에는 Result가 비어 있는 게 정상이기 때문.
 > enum 외 값은 unknown으로 분류되어 리포트에 경고로 표시된다.
