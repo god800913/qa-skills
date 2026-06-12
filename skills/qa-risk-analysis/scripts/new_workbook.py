@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Create a new TC workbook from a rows JSON.
 
 Usage:
@@ -33,6 +37,12 @@ SINGLE_COLUMNS = (
 
 MUTUAL_EXTRA_COLUMNS = ("A", "B")
 
+# Per-template header display renames. Internally columns stay canonical
+# ("Test Step"); only the written header cell differs (template-spec §Mutual).
+TEMPLATE_HEADER_RENAMES = {
+    "mutual": {"Test Step": "Test Reproduce"},
+}
+
 HEADER_FONT = Font(bold=True)
 HEADER_FILL = PatternFill(start_color="DDDDDD", end_color="DDDDDD", fill_type="solid")
 WRAP = Alignment(wrap_text=True, vertical="top")
@@ -66,11 +76,7 @@ def _section_index(name: str) -> int:
 
 def _columns_for(template: str) -> tuple[str, ...]:
     if template == "mutual":
-        # Insert A/B before Result.
-        # KNOWN GAP (Phase 2 PoC): spec §6.2 also requires renaming "Test Step" → "Test Reproduce"
-        # for mutual templates. Not implemented here — mutual append on a real `in Match`-style tab
-        # would currently write blank Test Reproduce cells because row_data uses "Test Step" key.
-        # Fix in a follow-up: either add a TEMPLATE_COLUMN_RENAMES map or have callers normalize keys.
+        # Insert A/B before Result. Canonical names here; header rename applied at write.
         idx = SINGLE_COLUMNS.index("Result")
         return SINGLE_COLUMNS[:idx] + MUTUAL_EXTRA_COLUMNS + SINGLE_COLUMNS[idx:]
     return SINGLE_COLUMNS
@@ -82,6 +88,7 @@ def write_workbook(rows: list[dict], tab_name: str, output: Path,
     (may differ from `output` due to collision suffix)."""
     actual_output = _resolve_output_path(output)
     columns = _columns_for(template)
+    renames = TEMPLATE_HEADER_RENAMES.get(template, {})
 
     wb = Workbook()
     wb.remove(wb.active)
@@ -89,7 +96,7 @@ def write_workbook(rows: list[dict], tab_name: str, output: Path,
 
     # Header row
     for col_idx, col_name in enumerate(columns, start=1):
-        cell = ws.cell(row=1, column=col_idx, value=col_name)
+        cell = ws.cell(row=1, column=col_idx, value=renames.get(col_name, col_name))
         cell.font = HEADER_FONT
         cell.fill = HEADER_FILL
         cell.alignment = WRAP

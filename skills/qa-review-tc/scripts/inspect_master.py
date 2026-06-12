@@ -1,3 +1,7 @@
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["openpyxl>=3.1.0", "python-calamine>=0.2.0"]
+# ///
 """Inspect a master TC xlsx and extract structural metadata.
 
 CLI:
@@ -34,6 +38,10 @@ COLUMN_ALIASES: dict[str, list[str]] = {
     "Remote Config / Admin": ["Remote Config\n/ Admin", "Remote Config / Admin"],
     "Pre-condition": ["Pre-condition", "Pre - condition"],
     "Automation Check": ["Automation Check", "Automation\nCheck"],
+    # Mutual tabs rename Test Step → Test Reproduce (template-spec §Mutual);
+    # canonicalize so validate_format / find_duplicates / select_minimal_coverage
+    # all see one key.
+    "Test Step": ["Test Step", "Test Reproduce"],
 }
 
 
