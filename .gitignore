@@ -9,3 +9,9 @@ htmlcov/
 dist/
 build/
 .DS_Store
+
+# 스킬 실행 산출물 — PRD 스냅샷은 내부 문서 내용을 담으므로 레포에 올리지 않는다
+output/
+prd-snapshots/
+_workspace/
+.understand-anything/
