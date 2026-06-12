@@ -15,7 +15,7 @@ PRD 개정이 기존 TC에 미치는 영향을 정리한다.
 ## 워크플로우
 
 ### 1. 입력 수집
-- 스냅샷 파일 읽기. 현재 PRD가 Notion URL이면 fetch하고, **fetch 직후 새 스냅샷도 저장** (`qa:generate-tc`와 같은 규약 — `./prd-snapshots/<기능명>-<YYYYMMDD>.md`).
+- 스냅샷 파일 읽기. 현재 PRD가 Notion URL이면 `reference/notion-fetch-policy.md`에 따라 fetch (도구 런타임 감지·내부 링크 1-depth follow·소스 매니페스트 의무)하고, **fetch 직후 새 스냅샷도 저장** — 규약은 `reference/snapshot-convention.md`.
 - 스냅샷과 현재 본문이 사실상 동일하면(변경 없음) 그렇게 보고하고 종료.
 
 ### 2. 변경점 추출
@@ -29,6 +29,7 @@ print('\n'.join(difflib.unified_diff(old, new, lineterm='', n=1)))"
 ```
 - 변경점을 추가 / 수정 / 삭제로 분류하고, 각 항목에 "QA 관점에서 무엇이 달라지나" 한 줄.
 - 문구만 바뀌고 동작이 같은 항목은 "동작 동일 (카피 변경)"으로 별도 분류 — TC 영향 없음.
+- **형식 노이즈는 변경점에서 제외**: 구 스냅샷이 규약 이전(LLM 재서술본)이면 문장 표현·순서·헤더 구조 차이가 대량 발생 — `reference/snapshot-convention.md` §4에 따라 의미가 달라진 항목만 보고. 메타헤더(`---` 블록)도 비교 제외.
 
 ### 3. TC 영향 분류
 - TC xlsx 제공 시: `scripts/extract_tc_table.py <xlsx> --tab <탭>`으로 행을 받아 변경점별 영향 TC_ID 매핑.
@@ -50,6 +51,7 @@ print('\n'.join(difflib.unified_diff(old, new, lineterm='', n=1)))"
 
 ### 5. 다음 액션 안내
 "수정/신규 TC는 `qa:generate-tc`로, 갱신 후 검수는 `qa:review-tc`로 이어가세요."
+- 이 리포트를 `qa:generate-tc`에 입력으로 넘기면 **Open Questions는 모호점 핸드오프 규약으로 승계**된다: 기대 결과를 정할 수 없는 항목 → Expected Result `TBD (PM 확인 필요)` + Comment `(Blocker) <질문 요약>`, 가정 가능 항목 → 가정을 Expected Result에 + Comment `가정: ...`.
 
 ## 비목표
 - TC 작성·수정 자체 (그건 `qa:generate-tc`), PRD 모호점 분석 (그건 `qa:prd-clarify`)

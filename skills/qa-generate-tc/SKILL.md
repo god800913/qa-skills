@@ -12,10 +12,12 @@ PRD를 표준 TC 표로 변환한다. 두 모드:
 ## 워크플로우
 
 ### 1. PRD 수집
-- Notion URL이면 `notion-fetch` MCP로 페이지 본문 + 자식 블록 + 임베드 객체 fetch.
+- Notion URL이면 `reference/notion-fetch-policy.md`에 따라 fetch: 도구 런타임 감지, 페이지 본문 + 자식 블록 + **내부 링크 1-depth follow** + 인라인 DB. PDF·이미지 한계와 스크린샷 입력 처리도 같은 문서 참조.
+- TC 미리보기 머리에 **소스 매니페스트** (포함/제외 소스) 필수 — 정책 문서 §4.
 - 본문이 50단어 미만이면 "PRD가 비어있는 듯, 본문 직접 붙여줄래?" 안내, 중단.
 - PRD가 모호하면 사용자에게 `qa:prd-clarify`를 먼저 돌리라고 권유 (강제는 안 함).
-- **[fetch 성공 시]** PRD 본문을 md 스냅샷으로 저장: 기본 `./prd-snapshots/<기능명>-<YYYYMMDD>.md` (기능명은 Notion 페이지 제목 또는 PRD 첫 H1에서 추출 — 공백은 하이픈으로, 특수문자 제거) (사용자가 다른 경로를 지정하면 그에 따름. 디렉토리 없으면 생성, 날짜는 `date '+%Y%m%d'`로 구함 — 암산 금지). 저장 경로를 사용자에게 알린다. 이 스냅샷은 나중에 `qa:prd-diff`가 PRD 변경분 분석에 사용한다.
+- **(옵션) clarify 리포트 입력**: `qa:prd-clarify` 리포트(파일 경로 또는 붙여넣기)를 받으면 Blocker/Major 항목을 4단계의 핸드오프 규약으로 TC에 반영. `qa:prd-diff` 리포트의 Open Questions도 같은 규약으로 승계.
+- **[fetch 성공 시]** PRD 본문을 md 스냅샷으로 저장 — 경로·슬러그·충돌 처리·본문 형식(fetch 원문 verbatim, 메타헤더)은 `reference/snapshot-convention.md` 규약 그대로. 저장 경로를 사용자에게 알린다. 이 스냅샷은 나중에 `qa:prd-diff`가 PRD 변경분 분석에 사용한다.
 
 ### 1.5 Figma 보강 (옵션)
 - 사용자가 Figma 링크를 줬거나 PRD에 Figma 임베드가 있으면 (임베드를 발견한 경우 사용자에게 알린 뒤) → 연결된 Figma MCP 도구를 감지 (도구명에 `figma` 포함 여부). 사용법·URL 파싱·반영 규칙은 `reference/figma-usage.md` 참조.
@@ -46,6 +48,11 @@ PRD를 표준 TC 표로 변환한다. 두 모드:
 - 자동화 추정: 단순 UI=All, 결제·실시간=Skip
 - 모호한 부분은 Comment에 가정 명시
 
+**모호점 핸드오프 규약 (clarify 리포트·prd-diff Open Questions → TC)**:
+- **Blocker** (기대 결과를 정할 수 없음): Expected Result에 고정 문자열 `TBD (PM 확인 필요)` + Comment 첫 줄 `(Blocker) <질문 요약>`. 임의 동작을 지어내지 않는다.
+- **Major** (합리적 가정으로 진행 가능): 가정한 동작을 Expected Result에 쓰고 + Comment 첫 줄 `가정: <가정 내용> — PM 확인 시 갱신`.
+- Minor는 TC에 반영하지 않고 필요 시 Comment에만 참고 표기.
+
 ### 5. 사용자 컨펌 루프 (필수)
 xlsx 만들기 *전*에 마크다운 표 미리보기 출력. "추가/삭제/수정 의견 있으세요?" 질문. 수정 반영 → 재출력. 명시적 "OK" 또는 "진행해" 받으면 다음.
 
@@ -54,14 +61,14 @@ TC 행 데이터를 JSON으로 만들고 (`{rows: [{section, Priority, OS, ...},
 
 **신규 시트 모드**:
 ```bash
-uv run python scripts/new_workbook.py \
+uv run scripts/new_workbook.py \
     --rows /tmp/rows.json --output <out>.xlsx \
     --tab-name "<탭 이름>" [--template single|mutual]
 ```
 
 **append 모드**:
 ```bash
-uv run python scripts/append_to_master.py \
+uv run scripts/append_to_master.py \
     --master <master>.xlsx --tab "<탭 이름>" \
     --rows /tmp/rows.json --output <out>.xlsx
 ```
@@ -92,4 +99,4 @@ uv run python scripts/append_to_master.py \
 
 **"마스터의 컬럼이 표준과 다름"**: 발견된 컬럼 표시 + 매핑 직접 묻기. `inspect_master.py`가 자동 매핑하는 컬럼 외에는 LLM 추정 금지.
 
-**"같은 PRD를 두 번 돌렸음"**: append 모드에서 TC_ID 충돌이 감지되면 멈추고 사용자에게 보고. 자동 패치 안 함.
+**"같은 PRD를 두 번 돌렸음"**: TC_ID 충돌은 발생하지 않음 (`append_to_master.py`가 항상 기존 last_tc_id+1부터 발번). 실제 위험은 **내용 중복**. append 전에 `scripts/extract_tc_table.py <master> --tab <name>`으로 기존 행을 평탄화해서 신규 행의 Test Summary와 비교하고, 동일·유사 항목이 있으면 멈추고 사용자에게 보고. 자동 제거 안 함.
