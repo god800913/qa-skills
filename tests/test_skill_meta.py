@@ -20,6 +20,14 @@ SKILL_DIRS = sorted(d for d in SKILLS_DIR.iterdir() if d.is_dir())
 # (negative lookbehind keeps shared-reference/... from matching as reference/...)
 _REF_RE = re.compile(r"(?<![\w-])(?:scripts|reference|examples)/[A-Za-z0-9_\-.]+\.(?:py|md)")
 
+# backticked bare filenames like `foo.md` — opening backtick must sit directly
+# before the name, so path forms (`reference/foo.md`) stay with _REF_RE
+_BARE_REF_RE = re.compile(r"`([A-Za-z0-9_\-.]+\.(?:py|md))`")
+
+
+def _bare_refs(text: str) -> set[str]:
+    return set(_BARE_REF_RE.findall(text))
+
 
 def _frontmatter(skill_md: Path) -> dict:
     text = skill_md.read_text(encoding="utf-8")
@@ -50,6 +58,29 @@ class TestSkillMd:
         missing = sorted({ref for ref in _REF_RE.findall(text)
                           if not (skill_dir / ref).exists()})
         assert missing == [], f"{skill_dir.name}: SKILL.md가 참조하는 파일 없음: {missing}"
+
+    def test_bare_filename_references_exist_in_bundle(self, skill_dir: Path):
+        """경로 없이 백틱으로만 지칭한 파일(`foo.md`)도 번들에 실존해야 한다.
+
+        qa-bug-report가 `risk-taxonomy`를 지칭하면서 번들에 파일이 없던
+        자기완결성 위반이 경로 형식이 아니라서 탐지를 빠져나간 갭의 회귀 방지."""
+        text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+        missing = sorted({name for name in _bare_refs(text)
+                          if not any(skill_dir.rglob(name))})
+        assert missing == [], (
+            f"{skill_dir.name}: SKILL.md가 백틱으로 지칭한 파일이 번들에 없음: {missing} "
+            "(reference/<name> 경로 형식으로 쓰거나 번들에 파일을 추가할 것)")
+
+
+class TestBareRefExtraction:
+    def test_extracts_bare_filenames_only(self):
+        text = ("`risk-taxonomy.md` 기준으로 판정, `scripts/tool.py` 실행, "
+                "`shared-reference/policy.md` 참조, `--patch` 옵션, `uv` 필요")
+        assert _bare_refs(text) == {"risk-taxonomy.md"}
+
+    def test_detects_missing_file_candidate(self):
+        # 존재 검증은 번들 테스트가 하므로, 추출기는 이름만 정확히 뽑으면 된다
+        assert _bare_refs("심각도는 `no-such-doc.md` 기준") == {"no-such-doc.md"}
 
 
 class TestReadmeSkillList:
