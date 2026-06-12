@@ -61,9 +61,10 @@ def export_minimal_coverage(selection: dict, columns: list[str], output: Path) -
                 "Y" if e.get("forced_overflow") else ""]
                for e in selection["excluded"]])
 
-    add_sheet("Next Best", ["TC_ID", "Test Summary", "점수", "추가 커버"],
+    add_sheet("Next Best", ["TC_ID", "Test Summary", "점수", "추가 커버", "강제 대상"],
               [[n["row"].get("TC_ID"), n["row"].get("Test Summary"),
-                n["score"], ", ".join(n["new_tags"])]
+                n["score"], ", ".join(n["new_tags"]),
+                "Y" if n.get("forced_overflow") else ""]
                for n in selection["next_best"]])
 
     add_sheet("Assumptions", ["가정"], [[a] for a in selection["assumptions"]])
