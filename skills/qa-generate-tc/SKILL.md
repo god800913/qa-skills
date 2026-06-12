@@ -45,7 +45,7 @@ PRD를 표준 TC 표로 변환한다. 두 모드:
 - PRD에 OS-specific 키워드 → OS 컬럼 명시
 - mutual 키워드 (`매치`, `메시지`, `콜`, `라이브매치`) → mutual 템플릿 제안
 - 한국어 작성, 기존 톤(짧은 명령형) 매칭
-- 자동화 추정: 단순 UI=All, 결제·실시간=Skip
+- `Automation Check`는 `Result`·`Jira no.`·`Automation TC_ID`처럼 사람-소관 — 추정하지 말고 비워 둔다
 - 모호한 부분은 Comment에 가정 명시
 
 **모호점 핸드오프 규약 (clarify 리포트·prd-diff Open Questions → TC)**:

@@ -16,7 +16,8 @@
 |---|---|
 | Priority | P1, P2, P3, P4 |
 | OS | iOS, And, Android, All, "" (공란) |
-| Automation Check | All, iOS, Android, Skip, "" (공란) |
+
+`Automation Check`는 사람-소관 컬럼이라 enum 검사하지 않는다 (`Result`·`Jira no.`·`Automation TC_ID`와 동일).
 
 ## TC_ID 중복 (duplicate_tc_id)
 같은 탭 내에서 동일한 TC_ID가 두 번 이상 등장하면 위반.
@@ -33,7 +34,7 @@
 ## 심각도 매핑
 - 필수 컬럼 누락 → Major
 - Priority enum 위반 → Major
-- OS / Automation Check enum 위반 → Minor
+- OS enum 위반 → Minor
 - TC_ID 중복 → Major
 
 ## Result 컬럼 enum (parse_results 스코프)

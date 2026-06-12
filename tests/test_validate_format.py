@@ -89,6 +89,27 @@ class TestValidateFormat:
         assert missing == [], f"Unexpected missing_required: {missing}"
 
 
+class TestAutomationCheckNotValidated:
+    def test_arbitrary_automation_check_value_produces_no_issue(self, tmp_path: Path):
+        """Automation Check는 사람-소관 컬럼 — validate_format이 enum 검사하지 않는다."""
+        from openpyxl import Workbook
+        wb = Workbook()
+        wb.remove(wb.active)
+        ws = wb.create_sheet("AutoFree")
+        ws.append(["Priority", "OS", "Automation Check", "Test Item",
+                   "Automation TC_ID", "TC_ID", "Test Summary",
+                   "Remote Config / Admin", "Pre-condition", "Test Step",
+                   "Expected Result", "Result", "Jira no.", "Comment"])
+        ws.append(["P1", "All", "임의값", "라운지", "", "1-1", "라운지 진입",
+                   "", "신규", "1. 라운지", "라운지 노출", "", "", ""])
+        path = tmp_path / "auto_free.xlsx"
+        wb.save(path)
+
+        out = _run(path, "AutoFree")
+        auto_issues = [i for i in out["issues"] if i.get("field") == "Automation Check"]
+        assert auto_issues == [], f"Automation Check 검사 잔존: {auto_issues}"
+
+
 class TestValidateFormatMutual:
     def test_filled_test_reproduce_not_flagged_missing(self, tmp_path: Path):
         from tests.test_inspect_master import make_mutual_xlsx
