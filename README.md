@@ -2,20 +2,20 @@
 
 Hyperconnect Azar QA 팀용 Claude Skills 모음 (PoC).
 
-PRD 검토부터 테스트케이스 작성·검수, 실행 계획, 결과 집계, 릴리즈 sign-off까지 QA 업무 생애주기 전반을 11개 스킬로 커버한다. 각 스킬은 Claude가 자연어 트리거(예: "리스크 분석해줘", "TC 만들어")로 자동 호출하며, 결정론이 중요한 부분(xlsx 파싱·포맷 검증·집계)은 Python 스크립트가, 판단이 필요한 부분(리스크 등급·커버리지·톤)은 LLM이 맡는 하이브리드 구조다.
+PRD 검토부터 테스트케이스 작성·검수, 실행 계획, 결과 집계, 릴리즈 sign-off까지 QA 업무 생애주기 전반을 13개 스킬로 커버한다. 각 스킬은 Claude가 자연어 트리거(예: "리스크 분석해줘", "TC 만들어")로 자동 호출하며, 결정론이 중요한 부분(xlsx 파싱·포맷 검증·집계)은 Python 스크립트가, 판단이 필요한 부분(리스크 등급·커버리지·톤)은 LLM이 맡는 하이브리드 구조다.
 
 > **운영 환경**: 팀의 TC 마스터는 14컬럼 표준 xlsx(Google Sheets). PRD는 Notion, 디자인은 Figma, 버그 트래킹은 Jira. 각 외부 시스템은 MCP로 연결되며, Figma·Jira는 미연결 시 해당 단계만 건너뛰고 진행한다. 단 Notion PRD가 **필수 입력**인 스킬은 건너뛸 수 없으므로 본문 직접 붙여넣기를 요청하고 중단한다 (`shared-reference/notion-fetch-policy.md`).
 
 ---
 
-## 워크플로우 — 11개 스킬이 맞물리는 방식
+## 워크플로우 — 13개 스킬이 맞물리는 방식
 
 ```
 ① PRD 분석            ② TC 작성·검수         ③ 실행 계획              ④ 실행·릴리즈            ⑤ 유지보수
 ─────────────         ─────────────         ─────────────           ─────────────           ─────────────
-qa-prd-clarify   ──┐  qa-generate-tc   ──┐  qa-regression-scope ─┐  qa-test-result-report ┐
-qa-risk-analysis ──┴─▶ qa-review-tc    ──┴─▶ qa-minimal-coverage ─┼─▶ qa-bug-report        ┼─▶ qa-prd-diff
-                                            qa-exploratory-charter┘  qa-release-checklist  ┘
+qa-prd-clarify   ──┐  qa-generate-tc   ──┐  qa-regression-scope ─┐  qa-test-result-report ┐  qa-prd-diff
+qa-risk-analysis ──┴─▶ qa-review-tc    ──┴─▶ qa-minimal-coverage ─┼─▶ qa-bug-report        ┼─▶ qa-result-diff
+                                            qa-exploratory-charter┘  qa-release-checklist  ┘  qa-escaped-defect
 ```
 
 각 스킬은 끝에서 **다음에 쓸 스킬**을 안내한다. 예: `qa-prd-clarify` → `qa-generate-tc` → `qa-review-tc` → `qa-minimal-coverage` → 실행 → `qa-test-result-report` → `qa-release-checklist`. PRD가 개정되면 `qa-prd-diff`로 영향 범위를 잡아 ②로 되돌아온다.
@@ -118,6 +118,21 @@ QA 증거를 모아 릴리즈 판정(ready / conditional / blocked)을 내린다
 - **출력**: 변경점 표 + TC 영향 표 + Open Questions md
 - **트리거**: "PRD 뭐 바뀌었어", "스펙 변경 영향", "PRD 디프"
 
+#### `qa-result-diff` — 회차 간 실행 결과 비교
+실행 완료된 회차들을 TC_ID 기준으로 비교해 "이번에 뭐가 새로 깨졌는지"를 골라낸다.
+- **입력**: 회차 순서대로 (xlsx, 탭) 쌍 2개 이상 (필수), 회차 라벨 (옵션)
+- **처리**: `diff_results.py` — 상호 배제 7분류(`new_fail`/`persistent_fail`/`recovered`/`still_pass`/`not_run`/`new_tc`/`removed_tc`) + flaky 직교 플래그(실측값 전환 2회 이상) + pass rate 추이. 공통 영역 가설만 LLM (추정 명시)
+- **출력**: 분류별 md 리포트 + (원하면) 요약 xlsx. ID 재사용 의심·TC_ID 없는 행은 경고로
+- **연계**: `new_fail` → `qa-bug-report`, 릴리즈 판단 → `qa-release-checklist`
+- **트리거**: "결과 비교", "지난 회차랑 비교", "뭐가 새로 깨졌어", "flaky 찾아"
+
+#### `qa-escaped-defect` — 유출 결함 역추적 → TC 갭 분석
+QA를 통과해 프로덕션으로 나간 버그가 "어느 단계에서 새어나갔는지"를 판정하고 보강 TC 후보를 만든다. **blameless** — 책임 추궁이 아니라 갭 분석.
+- **입력**: 버그 증상·환경·영역 (필수, 부족하면 추정 없이 질문) + 당시 실행 TC xlsx + 탭 (필수), Jira 키·PRD (옵션)
+- **처리**: 관련 TC 추적 후 갭 유형 판정 — A.미작성 / B.미실행 / C.실행했으나 못 잡음(빠진 조건 명시) / D.Fail인데 릴리즈(프로세스 갭)
+- **출력**: 갭 분석 md + 보강 TC 후보 표 (핸드오프 규약 — `qa-generate-tc`에 바로 입력 가능)
+- **트리거**: "이 버그 왜 못 잡았지", "유출 버그 분석", "TC 갭 분석"
+
 ---
 
 ## 공통 개념
@@ -147,7 +162,7 @@ qa-skills/
 ├── shared/                 # 결정론 스크립트의 단일 진실원천 (SoT)
 ├── shared-reference/       # 참조 문서의 단일 진실원천
 ├── scripts/sync_shared.py  # shared → 각 스킬 번들로 복사 동기화
-├── tests/                  # 단위 테스트 136개 — shared/ + sync 정책 + 스킬 메타
+├── tests/                  # 단위 테스트 167개 — shared/ + sync 정책 + 스킬 메타
 └── docs/plans/             # 설계·구현 플랜 기록
 ```
 
@@ -171,7 +186,7 @@ uv sync
 ## 테스트
 
 ```bash
-uv run pytest          # 136개 — shared/ 스크립트 전부 + sync_shared 정책 + 스킬 번들 메타(frontmatter·참조 실존·README 목록 일치)
+uv run pytest          # 167개 — shared/ 스크립트 전부 + sync_shared 정책 + 스킬 번들 메타(frontmatter·참조 실존·README 목록 일치)
 ```
 
 ---
