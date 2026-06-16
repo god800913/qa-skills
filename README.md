@@ -171,7 +171,7 @@ qa-skills/
 ├── shared/                 # 결정론 스크립트의 단일 진실원천 (SoT)
 ├── shared-reference/       # 참조 문서의 단일 진실원천
 ├── scripts/sync_shared.py  # shared → 각 스킬 번들로 복사 동기화
-├── tests/                  # 단위 테스트 186개 — shared/ + sync 정책 + 스킬 메타
+├── tests/                  # 단위 테스트 190개 — shared/ + sync 정책 + 스킬 메타
 └── docs/plans/             # 설계·구현 플랜 기록
 ```
 
@@ -195,7 +195,7 @@ uv sync
 ## 테스트
 
 ```bash
-uv run pytest          # 186개 — shared/ 스크립트 전부 + sync_shared 정책 + 스킬 번들 메타(frontmatter·참조 실존·README 목록 일치)
+uv run pytest          # 190개 — shared/ 스크립트 전부 + sync_shared 정책 + 스킬 번들 메타(frontmatter·참조 실존·README 목록 일치)
 ```
 
 ---
