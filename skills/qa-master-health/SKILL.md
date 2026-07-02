@@ -41,7 +41,7 @@ JSON 결과:
 ### 비-TC 탭 (스캔 제외)
 | 탭 | 사유 |
 ### 권고
-(attention 탭은 `qa:review-tc`로 깊게, 탭 간 중복 의심 시 `--cross-tab`까지)
+(attention 탭은 `qa:review-tc`로 깊게 — 탭 간 중복 스캔은 기본 포함)
 ```
 - 수치·등급은 스크립트 JSON 그대로 — LLM이 재집계하지 않는다.
 
